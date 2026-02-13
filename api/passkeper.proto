@@ -1,0 +1,64 @@
+syntax = "proto3";
+
+package passkeper;
+
+option go_package = "github.com/passkeper/api";
+
+message UserData {
+    Credentials credentials = 1;
+    TextData text_data = 2;
+    BinaryData binary_data = 3;
+    CardsData cards_data = 4;
+}
+
+message Credentials {
+    string username = 1;
+    string password = 2;
+    string metadata = 3;
+}
+
+message TextData {
+    string text = 1;
+    string metadata = 2;
+}
+
+message BinaryData {
+    bytes data = 1;
+    string metadata = 2;
+}
+
+message CardsData {
+    string card_number = 1;
+    string card_holder = 2;
+    string card_expiration = 3;
+    string card_cvv = 4;
+    string metadata = 5;
+}
+
+message RegisterRequest {
+    string username = 1;
+    string password = 2;
+    string email = 3;
+}
+
+message RegisterResponse {
+    string message = 1;
+}
+
+message AuthRequest {
+    string username = 1;
+    string password = 2;
+}
+
+message AuthResponse {
+    string message = 1;
+}
+
+message GetPrivateDataRequest {
+    
+}
+
+message GetPrivateDataResponse {
+    string message = 1;
+    UserData user_data = 2;
+}
