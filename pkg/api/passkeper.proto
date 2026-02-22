@@ -5,7 +5,7 @@ package passkeeper;
 import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
 
-option go_package = "github.com/passkeeper/api;pkppb";
+option go_package = "github.com/devize-ed/passKeper.git/pkg/api;pkppb";
 
 message RegisterRequest {
   string username = 1;
@@ -39,6 +39,7 @@ message Credentials {
   string user_password = 2;
   string metadata = 3;
 }
+
 message Text {
   string text = 1;
   string metadata = 2;
@@ -47,6 +48,7 @@ message Binary {
   bytes data = 1;
   string metadata = 2;
 }
+
 message Card {
   string name = 1;
   string number = 2;
@@ -85,6 +87,7 @@ message UpdateItemRequest {
   string id = 1;
   ItemType type = 2;
   ItemData data = 3;
+  google.protobuf.Timestamp updated_at = 4;
 }
 
 message UpdateItemResponse {
@@ -111,21 +114,10 @@ message ListItemsResponse {
   repeated Item items = 1;
 }
 
-message SyncRequest {
-  google.protobuf.Timestamp since = 1;
-}
-
-message SyncResponse {
-  repeated Item items = 1;
-  repeated string deleted_ids = 2;
-  google.protobuf.Timestamp sync_time = 3;
-}
-
 service PasskeeperItemService {
   rpc CreateItem(CreateItemRequest) returns (CreateItemResponse);
   rpc UpdateItem(UpdateItemRequest) returns (UpdateItemResponse);
   rpc DeleteItem(DeleteItemRequest) returns (google.protobuf.Empty);
   rpc GetItem(GetItemRequest) returns (GetItemResponse);
   rpc ListItems(ListItemsRequest) returns (ListItemsResponse);
-  rpc Sync(SyncRequest) returns (SyncResponse);
 }
