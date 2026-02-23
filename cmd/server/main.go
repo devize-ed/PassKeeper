@@ -12,7 +12,7 @@ import (
 	"passKeper/internal/config"
 	"passKeper/internal/logger"
 	"passKeper/internal/repository/db"
-	"passKeper/internal/transport"
+	"passKeper/internal/server"
 )
 
 var (
@@ -56,7 +56,7 @@ func run() error {
 	jwtManager := auth.NewJWTManager(cfg.AuthKey)
 
 	// create a new server
-	srv := transport.NewServer(jwtManager, repository)
+	srv := server.NewServer(jwtManager, repository)
 	// start the server
 	if err := srv.Serve(ctx, cfg.Address, jwtManager); err != nil {
 		return fmt.Errorf("failed to start server: %w", err)

@@ -3,6 +3,7 @@ package client
 import (
 	"fmt"
 	"log"
+	"passKeper/internal/cmd"
 )
 
 var (
@@ -19,5 +20,9 @@ func main() {
 }
 
 func run() error {
+	err := cmd.Execute()
+	if err != nil {
+		return fmt.Errorf("failed to execute command: %w", err)
+	}
 	return nil
 }
