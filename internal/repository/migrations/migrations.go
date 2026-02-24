@@ -1,3 +1,5 @@
+// Package migrations provides database schema migrations for PassKeeper.
+// Migrations are applied automatically when the DB connection is created.
 package migrations
 
 import (
@@ -16,7 +18,7 @@ import (
 //go:embed *.sql
 var migrationsDir embed.FS
 
-// RunMigrations applies the database migrations using the provided DSN.
+// RunMigrations applies or rolls back database migrations. If flow is true, migrations run up; otherwise down.
 func RunMigrations(dsn string, flow bool) error {
 	d, err := iofs.New(migrationsDir, ".")
 	if err != nil {

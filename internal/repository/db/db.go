@@ -1,3 +1,5 @@
+// Package db provides the database layer for PassKeeper.
+// It implements Storage using PostgreSQL
 package db
 
 import (

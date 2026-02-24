@@ -1,0 +1,3 @@
+address: localhost:50051
+token_store_path: ~/.passkeeper/token
+log_level: debug

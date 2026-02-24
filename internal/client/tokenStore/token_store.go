@@ -1,3 +1,4 @@
+// Package tokenStore provides file-based JWT token persistence for the client.
 package tokenStore
 
 import (

@@ -1,3 +1,5 @@
+// Package service provides the business logic layer for PassKeeper.
+// It implements authentication and item management on top of the storage layer.
 package service
 
 import (
@@ -11,9 +13,10 @@ import (
 	"time"
 )
 
+// Sentinel errors returned by the service layer.
 var (
-	ErrInvalidCredentials = errors.New("invalid credentials")
-	ErrInvalidItemType    = errors.New("invalid item type")
+	ErrInvalidCredentials = errors.New("invalid credentials") // ErrInvalidCredentials indicates wrong username or password.
+	ErrInvalidItemType    = errors.New("invalid item type") // ErrInvalidItemType indicates an unsupported item type.
 )
 
 // Storage interface provides the methods to interact with the storage layer.

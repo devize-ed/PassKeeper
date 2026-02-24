@@ -1,3 +1,4 @@
+// Package app provides the CLI application logic for the PassKeeper client.
 package app
 
 import (
@@ -131,10 +132,14 @@ func (a *App) CreateItem(ctx context.Context, itemType int32) error {
 		return fmt.Errorf("failed to create item data: %w", err)
 	}
 	logger.Log.Debugf("Calling create item service for type: %d", itemType)
-	err = a.grpcClient.CreateItem(ctx, pb.ItemType(itemType), itemData)
+	item, err := a.grpcClient.CreateItem(ctx, pb.ItemType(itemType), itemData)
 	if err != nil {
 		return fmt.Errorf("failed to create item: %w", err)
 	}
+	// write the item to the output
+	a.out.WriteString("Created item with ID: \n")
+	a.out.WriteString(item.Id + "\n")
+	a.out.Flush()
 	return nil
 }
 
@@ -212,6 +217,7 @@ func (a *App) GetItem(ctx context.Context, itemID string) (*pb.Item, error) {
 	return item, nil
 }
 
+// ListItems fetches and prints items (optionally filtered by type) to stdout.
 func (a *App) ListItems(ctx context.Context, itemType int32) error {
 	err := a.requireAuthentication()
 	if err != nil {

@@ -10,7 +10,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-// ServerConfig holds the configuration for the server.
+// ServerConfig holds the server configuration (address, DSN, auth key, log level).
 type ServerConfig struct {
 	Address  string `mapstructure:"address" env:"SERVER_ADDRESS"`
 	DSN      string `mapstructure:"dsn" env:"DATABASE_DSN"`
@@ -18,9 +18,10 @@ type ServerConfig struct {
 	LogLevel string `mapstructure:"log_level" env:"LOG_LEVEL"`
 }
 
+// Default server configuration values.
 const (
-	DefaultHost     = "localhost:50051"
-	DefaultLogLevel = "info"
+	DefaultHost     = "localhost:50051" // DefaultHost is the default gRPC listen address.
+	DefaultLogLevel = "info"            // DefaultLogLevel is the default log level (used by client too).
 )
 
 // LoadServerConfig loads the server configuration from the viper.
@@ -28,7 +29,9 @@ func LoadServerConfig() (*ServerConfig, error) {
 	// Set the config name and type.
 	viper.SetConfigName("server")
 	viper.SetConfigType("yaml")
-	viper.AddConfigPath("./config/server_config.yaml")
+	viper.AddConfigPath("./cfg")
+	viper.AddConfigPath("../cfg")
+	viper.AddConfigPath("../../cfg")
 	// Set the default values.
 	viper.SetDefault("address", DefaultHost)
 	viper.SetDefault("log_level", DefaultLogLevel)

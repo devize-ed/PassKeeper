@@ -16,7 +16,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-// Register is a grpc handler for the Register request.
+// Register is the gRPC handler for user registration.
 func (s *AuthServer) Register(ctx context.Context, req *pb.RegisterRequest) (*emptypb.Empty, error) {
 	logger.Log.Debugf("Registering a new user with username: %s", req.Username)
 	// Call the CreateUser method from the AuthService.
@@ -32,7 +32,7 @@ func (s *AuthServer) Register(ctx context.Context, req *pb.RegisterRequest) (*em
 	return &emptypb.Empty{}, nil
 }
 
-// Login is a grpc handler for the Login request.
+// Login is the gRPC handler for user login.
 func (s *AuthServer) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error) {
 	logger.Log.Debugf("Logging in a user with username: %s", req.Username)
 	// Call the LoginUser method from the AuthService.
@@ -48,7 +48,7 @@ func (s *AuthServer) Login(ctx context.Context, req *pb.LoginRequest) (*pb.Login
 	return &pb.LoginResponse{Token: token}, nil
 }
 
-// CreateItem is a grpc handler for the CreateItem request.
+// CreateItem is the gRPC handler for CreateItem requests.
 func (s *ItemServer) CreateItem(ctx context.Context, req *pb.CreateItemRequest) (*pb.CreateItemResponse, error) {
 	logger.Log.Debugf("Creating a new item with type: %d", req.Type)
 	// Marshal the item data to a byte array.
@@ -76,7 +76,7 @@ func (s *ItemServer) CreateItem(ctx context.Context, req *pb.CreateItemRequest) 
 	return &pb.CreateItemResponse{Item: itemPb}, nil
 }
 
-// UpdateItem is a grpc handler for the UpdateItem request.
+// UpdateItem is the gRPC handler for UpdateItem requests.
 func (s *ItemServer) UpdateItem(ctx context.Context, req *pb.UpdateItemRequest) (*pb.UpdateItemResponse, error) {
 	logger.Log.Debugf("Updating an item with ID: %s and type: %d", req.Id, req.Type)
 	// Marshal the item data to a byte array.
@@ -112,7 +112,7 @@ func (s *ItemServer) UpdateItem(ctx context.Context, req *pb.UpdateItemRequest) 
 	return &pb.UpdateItemResponse{Item: itemPb}, nil
 }
 
-// DeleteItem is a grpc handler for the DeleteItem request.
+// DeleteItem is the gRPC handler for DeleteItem requests (soft delete).
 func (s *ItemServer) DeleteItem(ctx context.Context, req *pb.DeleteItemRequest) (*emptypb.Empty, error) {
 	logger.Log.Debugf("Deleting an item with ID: %s", req.Id)
 	// Call the DeleteItem method from the ItemService.
@@ -130,7 +130,7 @@ func (s *ItemServer) DeleteItem(ctx context.Context, req *pb.DeleteItemRequest) 
 	return &emptypb.Empty{}, nil
 }
 
-// GetItem is a grpc handler for the GetItem request.
+// GetItem is the gRPC handler for GetItem requests.
 func (s *ItemServer) GetItem(ctx context.Context, req *pb.GetItemRequest) (*pb.GetItemResponse, error) {
 	logger.Log.Debugf("Getting an item with ID: %s", req.Id)
 	// Call the GetItem method from the ItemService.
@@ -162,7 +162,7 @@ func (s *ItemServer) GetItem(ctx context.Context, req *pb.GetItemRequest) (*pb.G
 	return &pb.GetItemResponse{Item: itemPb}, nil
 }
 
-// ListItems is a grpc handler for the ListItems request.
+// ListItems is the gRPC handler for ListItems requests.
 func (s *ItemServer) ListItems(ctx context.Context, req *pb.ListItemsRequest) (*pb.ListItemsResponse, error) {
 	logger.Log.Debugf("Listing items with type: %d", req.Type)
 	// Call the ListItems method from the ItemService.

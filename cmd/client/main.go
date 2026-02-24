@@ -1,4 +1,5 @@
-package client
+// Package main is the entry point for the PassKeeper CLI client.
+package main
 
 import (
 	"context"
@@ -15,11 +16,6 @@ import (
 	"syscall"
 )
 
-var (
-	version   string
-	buildDate string
-)
-
 func main() {
 	if err := run(); err != nil {
 		log.Fatal(err)
@@ -34,21 +30,15 @@ func run() error {
 	}
 	// initialize the logger
 	logger.Initialize(cfg.LogLevel)
-	if err != nil {
-		return fmt.Errorf("failed to initialize logger: %w", err)
-	}
 	// initialize token store
-	tokenStore := tokenStore.NewTokenStore(cfg.TokenStorePath)
-	if err != nil {
-		return fmt.Errorf("failed to initialize token store: %w", err)
-	}
+	store := tokenStore.NewTokenStore(cfg.TokenStorePath)
 	// create a new gRPC client
-	grpcClient, err := grpcclient.NewClient(cfg.Address, tokenStore)
+	grpcClient, err := grpcclient.NewClient(cfg.Address, store)
 	if err != nil {
 		return fmt.Errorf("failed to create gRPC client: %w", err)
 	}
 	// create a new app instance
-	appInstance, err := app.NewApp(grpcClient, tokenStore)
+	appInstance, err := app.NewApp(grpcClient, store)
 	if err != nil {
 		return fmt.Errorf("failed to create app instance: %w", err)
 	}

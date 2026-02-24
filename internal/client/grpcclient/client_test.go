@@ -133,7 +133,11 @@ func TestClient_CreateItem(t *testing.T) {
 			CreateItem(mock.Anything, &pb.CreateItemRequest{Type: pb.ItemType_TEXT, Data: itemData}).
 			Return(&pb.CreateItemResponse{Item: &pb.Item{Id: "new-id", Type: pb.ItemType_TEXT}}, nil)
 
-		err := c.CreateItem(context.Background(), pb.ItemType_TEXT, itemData)
+		item, err := c.CreateItem(context.Background(), pb.ItemType_TEXT, itemData)
+		require.NoError(t, err)
+		require.NotNil(t, item)
+		assert.Equal(t, "new-id", item.Id)
+		assert.Equal(t, pb.ItemType_TEXT, item.Type)
 		require.NoError(t, err)
 	})
 
@@ -148,8 +152,9 @@ func TestClient_CreateItem(t *testing.T) {
 			CreateItem(mock.Anything, mock.Anything).
 			Return(nil, errors.New("create failed"))
 
-		err := c.CreateItem(context.Background(), pb.ItemType_TEXT, itemData)
+		item, err := c.CreateItem(context.Background(), pb.ItemType_TEXT, itemData)
 		require.Error(t, err)
+		assert.Nil(t, item)
 		assert.Contains(t, err.Error(), "failed to create item")
 	})
 }

@@ -1,4 +1,4 @@
-// Package config provides configuration management for server components using viper.
+// Package config provides configuration management for client and server using viper.
 package config
 
 import (
@@ -8,16 +8,17 @@ import (
 	"github.com/spf13/viper"
 )
 
-// ServerConfig holds the configuration for the server.
+// ClientConfig holds the client configuration (address, token path, log level).
 type ClientConfig struct {
 	Address        string `mapstructure:"address" env:"SERVER_ADDRESS"`
 	TokenStorePath string `mapstructure:"token_store_path" env:"TOKEN_STORE_PATH"`
 	LogLevel       string `mapstructure:"log_level" env:"LOG_LEVEL"`
 }
 
+// Default client configuration values.
 const (
-	DefaultServerAddress  = "localhost:50051"
-	DefaultTokenStorePath = "~/.passkeeper/token"
+	DefaultServerAddress  = "localhost:50051"     // DefaultServerAddress is the default gRPC server address.
+	DefaultTokenStorePath = "~/.passkeeper/token" // DefaultTokenStorePath is the default token file path.
 )
 
 // LoadClientConfig loads the client configuration from the viper.
@@ -25,7 +26,9 @@ func LoadClientConfig() (*ClientConfig, error) {
 	// Set the config name and type.
 	viper.SetConfigName("client")
 	viper.SetConfigType("yaml")
-	viper.AddConfigPath("./config/client_config.yaml")
+	viper.AddConfigPath("./cfg")
+	viper.AddConfigPath("../cfg")
+	viper.AddConfigPath("../../cfg")
 	// Set the default values.
 	viper.SetDefault("address", DefaultServerAddress)
 	viper.SetDefault("token_store_path", DefaultTokenStorePath)
@@ -34,9 +37,9 @@ func LoadClientConfig() (*ClientConfig, error) {
 	if err := viper.ReadInConfig(); err != nil {
 		_, ok := err.(viper.ConfigFileNotFoundError)
 		if !ok {
-			return nil, fmt.Errorf("error reading server config: %w", err)
+			return nil, fmt.Errorf("error reading client config: %w", err)
 		}
-		log.Println("WARN: server config file not found, using default values")
+		log.Println("WARN: client config file not found, using default values")
 	}
 	// set the environment variable binding.
 	viper.AutomaticEnv()
@@ -53,8 +56,7 @@ func LoadClientConfig() (*ClientConfig, error) {
 	var cfg ClientConfig
 	err = viper.Unmarshal(&cfg)
 	if err != nil {
-		return nil, fmt.Errorf("error unmarshalling server config: %w", err)
+		return nil, fmt.Errorf("error unmarshalling client config: %w", err)
 	}
-	// Return the server configuration.
 	return &cfg, nil
 }

@@ -8,13 +8,13 @@ import (
 	"google.golang.org/grpc/metadata"
 )
 
-// LoginMethod and RegisterMethod are the grpcmethods that do not require authentication.
+// gRPC methods that skip auth token injection.
 const (
 	LoginMethod    = "/passkeeper.PasskeeperAuthService/Login"
 	RegisterMethod = "/passkeeper.PasskeeperAuthService/Register"
 )
 
-// TokenStore interface provides the methods to interact with the token store.
+// TokenStore is the interface for loading the auth token (used by the client interceptor).
 type TokenStore interface {
 	Load() (string, error)
 }

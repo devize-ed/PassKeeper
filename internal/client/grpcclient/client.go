@@ -1,3 +1,5 @@
+// Package grpcclient provides the gRPC client for the PassKeeper service.
+// It handles auth token injection and RPC calls for auth and items.
 package grpcclient
 
 import (
@@ -64,12 +66,12 @@ func (c *Client) Login(ctx context.Context, username, password string) (string, 
 }
 
 // CreateItem creates a new item.
-func (c *Client) CreateItem(ctx context.Context, itemType pb.ItemType, itemData *pb.ItemData) error {
-	_, err := c.item.CreateItem(ctx, &pb.CreateItemRequest{Type: itemType, Data: itemData})
+func (c *Client) CreateItem(ctx context.Context, itemType pb.ItemType, itemData *pb.ItemData) (*pb.Item, error) {
+	response, err := c.item.CreateItem(ctx, &pb.CreateItemRequest{Type: itemType, Data: itemData})
 	if err != nil {
-		return fmt.Errorf("failed to create item: %w", err)
+		return nil, fmt.Errorf("failed to create item: %w", err)
 	}
-	return nil
+	return response.GetItem(), nil
 }
 
 // UpdateItem updates an item.

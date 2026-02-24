@@ -29,7 +29,7 @@ func authFunc(jwtm *auth.JWTManager) grpcauth.AuthFunc {
 	}
 }
 
-// AuthFuncOverride is a function that overrides the authentication function to pass the auth for login and register services.
+// AuthFuncOverride skips JWT authentication for Login and Register RPCs.
 func (s *AuthServer) AuthFuncOverride(ctx context.Context, fullMethodName string) (context.Context, error) {
 	return ctx, nil
 }

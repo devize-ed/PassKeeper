@@ -1,10 +1,9 @@
-# migrations
+# Package migrations
 
-В данной директории содержаться файлы миграций базы данных.
+Database schema migrations for PassKeeper.
+Migrations are run automatically when the DB connection is created via `db.NewDB`.
 
-Миграции базы данных — это скрипты, которые позволяют:
-- версионировать изменения схемы базы данных
-- применять изменения в правильном порядке
-- откатывать изменения при необходимости
+## Migration files
 
-Тема миграций будет подробно изучаться дальше по курсу.
+- `000001_create_passkeeper_tables.up.sql` – creates users and items tables
+- `000001_create_passkeeper_tables.down.sql` – drops tables

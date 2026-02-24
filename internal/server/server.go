@@ -1,3 +1,4 @@
+// Package server provides the gRPC server implementation for PassKeeper.
 package server
 
 import (
@@ -41,6 +42,7 @@ func NewServer(jwtManager *auth.JWTManager, storage service.Storage) *Server {
 	return &Server{AuthServer: &AuthServer{AuthService: authService}, ItemServer: &ItemServer{ItemService: itemService}}
 }
 
+// Server holds the gRPC server and its auth/item service implementations.
 type Server struct {
 	AuthServer pb.PasskeeperAuthServiceServer
 	ItemServer pb.PasskeeperItemServiceServer

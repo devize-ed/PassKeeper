@@ -1,3 +1,4 @@
+// Package hash provides bcrypt password hashing and verification utilities.
 package hash
 
 import (

@@ -1,3 +1,4 @@
+// Package cmd provides the Cobra-based CLI for the PassKeeper client.
 package cmd
 
 import (
@@ -9,12 +10,10 @@ import (
 )
 
 var (
-	cfgFile        string
 	serverAddress  string
 	tokenStorePath string
 
 	appInstance *app.App
-	err         error
 
 	// rootCmd represents the base command when called without any subcommands
 	rootCmd = &cobra.Command{
@@ -35,7 +34,6 @@ func Execute(ctx context.Context) error {
 }
 
 func init() {
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "./config/passKeper.yaml", "config file (default is ./config/passKeper.yaml)")
 	rootCmd.PersistentFlags().StringVar(&serverAddress, "address", "localhost:50051", "server address")
 	rootCmd.PersistentFlags().StringVar(&tokenStorePath, "token-store-path", "~/.passkeeper/token", "token store path NOTE: default is ~/.passkeeper/token")
 }

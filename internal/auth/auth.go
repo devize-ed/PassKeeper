@@ -1,3 +1,4 @@
+// Package auth provides JWT-based authentication utilities for the PassKeeper service.
 package auth
 
 import (
@@ -29,12 +30,12 @@ var (
 	errTokenExpired       = errors.New("token expired") // errTokenExpired is the error returned when the token is expired.
 )
 
-// NewJWTManager reads the secret from the environment variables
+// NewJWTManager creates a JWT manager with the given signing secret.
 func NewJWTManager(secret string) *JWTManager {
 	return &JWTManager{secret: []byte(secret)}
 }
 
-// generateToken generates a new JWT token for the user.
+// GenerateToken generates a new JWT token for the user.
 func (j *JWTManager) GenerateToken(userID string) (string, error) {
 	// Generate a new JWT token for the user
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{

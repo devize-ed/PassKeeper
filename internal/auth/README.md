@@ -1,4 +1,6 @@
-## auth
+# Package auth
+
+JWT-based authentication utilities for PassKeeper.
 
 
 

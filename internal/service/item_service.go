@@ -1,3 +1,5 @@
+// Package service provides the business logic layer for PassKeeper.
+// It implements item management on top of the storage layer.
 package service
 
 import (
@@ -9,7 +11,7 @@ import (
 	"time"
 )
 
-// AuthService struct provides the methods to interact with the auth service layer.
+// ItemService provides item CRUD operations, delegating to the storage layer.
 type ItemService struct {
 	storage Storage
 }
