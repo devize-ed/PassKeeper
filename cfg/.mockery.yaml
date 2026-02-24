@@ -26,3 +26,11 @@ packages:
     interfaces:
       PasskeeperAuthServiceClient: {}
       PasskeeperItemServiceClient: {}
+
+  passKeper/internal/server:
+    config:
+      dir: internal/server/mocks
+      outpkg: mocks
+    interfaces:
+      AuthService: {}
+      ItemService: {}

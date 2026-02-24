@@ -23,7 +23,7 @@ func TestJWTManager_GenerateToken(t *testing.T) {
 		userID  string
 		wantErr bool
 	}{
-		{"valid user id", "user-123", false},
+		{"valid user id", "testuser", false},
 		{"empty user id", "", false},
 		{"uuid", "550e8400-e29b-41d4-a716-446655440000", false},
 	}

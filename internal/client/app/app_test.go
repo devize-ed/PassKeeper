@@ -18,7 +18,10 @@ type mockAppTokenStore struct {
 	err   error
 }
 
-func (m *mockAppTokenStore) Save(token string) error { return nil }
+func (m *mockAppTokenStore) Save(token string) error {
+	return nil
+}
+
 func (m *mockAppTokenStore) Load() (string, error) {
 	if m.err != nil {
 		return "", m.err
@@ -80,17 +83,17 @@ func TestApp_Close(t *testing.T) {
 
 func TestApp_requireAuthentication(t *testing.T) {
 	tests := []struct {
-		name      string
-		token     string
-		loadErr   error
-		wantErr   bool
+		name        string
+		token       string
+		loadErr     error
+		wantErr     bool
 		errContains string
 	}{
 		{
-			name:      "has token",
-			token:     "valid-token",
-			loadErr:   nil,
-			wantErr:   false,
+			name:    "has token",
+			token:   "valid-token",
+			loadErr: nil,
+			wantErr: false,
 		},
 		{
 			name:        "empty token",
