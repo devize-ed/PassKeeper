@@ -155,7 +155,7 @@ func (db *DB) UpdateItem(ctx context.Context, userID string, itemID string, item
 	if err != nil {
 		return Item{}, fmt.Errorf("failed to begin a transaction: %w", err)
 	}
-	defer tx.Rollback(ctx)
+	defer func() { _ = tx.Rollback(ctx) }()
 	// Truncate the timestamp to the microsecond
 	expectedTimestamp := timestamp.UTC().Truncate(time.Microsecond)
 	// Get the new timestamp

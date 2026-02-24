@@ -15,7 +15,7 @@ var (
 	ErrUserNotFound      = errors.New("user not found")            // ErrUserNotFound indicates no user with given username.
 	ErrInvalidPassword   = errors.New("invalid password")          // ErrInvalidPassword indicates password mismatch.
 	ErrItemNotFound      = errors.New("item not found")            // ErrItemNotFound indicates no item with given ID.
-	ErrWrongUserID       = errors.New("Item does not belong to the user") // ErrWrongUserID indicates access denied.
+	ErrWrongUserID       = errors.New("item does not belong to the user") // ErrWrongUserID indicates access denied.
 	ErrTimestampTooOld   = errors.New("timestamp is older than the updated at") // ErrTimestampTooOld indicates conflict.
 	ErrItemAlreadyExists = errors.New("item already exists")      // ErrItemAlreadyExists indicates duplicate item.
 )

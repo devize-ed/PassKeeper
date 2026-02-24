@@ -73,7 +73,7 @@ func TestServer_Serve(t *testing.T) {
 		lis, err := net.Listen("tcp", ":0")
 		require.NoError(t, err)
 		addr := lis.Addr().String()
-		lis.Close()
+		_ = lis.Close()
 
 		srv := NewServer(jwtManager, storage)
 		ctx, cancel := context.WithCancel(context.Background())
@@ -82,7 +82,7 @@ func TestServer_Serve(t *testing.T) {
 
 		conn, err := grpc.NewClient(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 		require.NoError(t, err)
-		conn.Close()
+		_ = conn.Close()
 
 		cancel()
 		require.NoError(t, <-done)

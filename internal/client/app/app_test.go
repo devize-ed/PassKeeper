@@ -108,7 +108,7 @@ func TestApp_Register(t *testing.T) {
 	lis, err := net.Listen("tcp", ":0")
 	require.NoError(t, err)
 	addr := lis.Addr().String()
-	lis.Close()
+	_ = lis.Close()
 
 	storage := mocks.NewMockStorage(t)
 	storage.EXPECT().CreateUser(mock.Anything, "user1", mock.AnythingOfType("string")).Return(nil)
@@ -133,7 +133,7 @@ func TestApp_Login(t *testing.T) {
 	lis, err := net.Listen("tcp", ":0")
 	require.NoError(t, err)
 	addr := lis.Addr().String()
-	lis.Close()
+	_ = lis.Close()
 
 	password := "pass123"
 	passwordHash, err := hash.HashPassword(password)
@@ -164,7 +164,7 @@ func TestApp_CreateItem(t *testing.T) {
 	lis, err := net.Listen("tcp", ":0")
 	require.NoError(t, err)
 	addr := lis.Addr().String()
-	lis.Close()
+	_ = lis.Close()
 
 	storage := mocks.NewMockStorage(t)
 	storage.EXPECT().CreateItem(mock.Anything, "user-id", int32(pb.ItemType_TEXT), mock.AnythingOfType("[]uint8")).Return(db.Item{ID: "item-1", Type: int32(pb.ItemType_TEXT)}, nil)
@@ -199,7 +199,7 @@ func TestApp_GetItem(t *testing.T) {
 	lis, err := net.Listen("tcp", ":0")
 	require.NoError(t, err)
 	addr := lis.Addr().String()
-	lis.Close()
+	_ = lis.Close()
 
 	itemData := &pb.ItemData{Data: &pb.ItemData_Text{Text: &pb.Text{Text: "x", Metadata: "y"}}}
 	dataBytes, err := proto.Marshal(itemData)
@@ -243,7 +243,7 @@ func TestApp_ListItems(t *testing.T) {
 	lis, err := net.Listen("tcp", ":0")
 	require.NoError(t, err)
 	addr := lis.Addr().String()
-	lis.Close()
+	_ = lis.Close()
 
 	itemData := &pb.ItemData{Data: &pb.ItemData_Text{Text: &pb.Text{Text: "a", Metadata: "b"}}}
 	dataBytes, err := proto.Marshal(itemData)
@@ -284,7 +284,7 @@ func TestApp_EditItem(t *testing.T) {
 	lis, err := net.Listen("tcp", ":0")
 	require.NoError(t, err)
 	addr := lis.Addr().String()
-	lis.Close()
+	_ = lis.Close()
 
 	itemData := &pb.ItemData{Data: &pb.ItemData_Text{Text: &pb.Text{Text: "old", Metadata: "oldmeta"}}}
 	dataBytes, err := proto.Marshal(itemData)

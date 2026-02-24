@@ -77,7 +77,7 @@ func (s *AuthService) LoginUser(ctx context.Context, username string, password s
 	}
 	// Verify the password
 	if !hash.VerifyPassword(password, passwordHash) {
-		return "", fmt.Errorf("Invalid credentials: %w", ErrInvalidCredentials)
+		return "", fmt.Errorf("invalid credentials: %w", ErrInvalidCredentials)
 	}
 	// Generate a new JWT token
 	token, err := s.jwtManager.GenerateToken(userID)

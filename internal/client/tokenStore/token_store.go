@@ -10,7 +10,7 @@ import (
 
 // Errors
 var (
-	errNotLoggedIn     = errors.New("Authentication token is empty, please login")
+	errNotLoggedIn     = errors.New("authentication token is empty, please login")
 	errFileInteraction = errors.New("file interaction failed")
 )
 
