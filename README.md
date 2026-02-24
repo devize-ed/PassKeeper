@@ -95,23 +95,20 @@ Available for all commands:
 
 
 ### Commands
-
+> **Note:** If any of flag are not setted, it will be asked in the interactive mode.
 #### `register` — Create a new account
 
 Creates a new user account. You must register before logging in.
 
-| Flag | Short | Required | Description |
-|------|-------|----------|-------------|
-| `--username` | `-u` | No* | Username |
-| `--password` | `-p` | No* | Password |
+| Flag | Short | Description |
+|------|-------|-------------|
+| `--username` | `-u` | Username |
+| `--password` | `-p` | Password |
 
 \* If omitted, prompts for input in interactive mode.
 
 ```bash
-# With flags
 ./passkeeper register -u myuser -p mypassword
-
-# Interactive (will prompt for username and password)
 ./passkeeper register
 ```
 
@@ -121,16 +118,16 @@ Creates a new user account. You must register before logging in.
 
 Logs in and stores the JWT token locally. All item commands require a valid token.
 
-| Flag | Short | Required | Description |
-|------|-------|----------|-------------|
-| `--username` | `-u` | No* | Username |
-| `--password` | `-p` | No* | Password |
+| Flag | Short | Description |
+|------|-------|-------------|
+| `--username` | `-u` | Username |
+| `--password` | `-p` | Password |
 
 \* If omitted, prompts in interactive mode.
 
 ```bash
 ./passkeeper login -u myuser -p mypassword
-# or: .tmp/passkeeper login
+./passkeeper login
 ```
 
 ---
@@ -139,32 +136,13 @@ Logs in and stores the JWT token locally. All item commands require a valid toke
 
 Creates a new item of the given type. Item data can be entered interactively or piped via stdin (for text/binary).
 
-| Flag | Short | Required | Description |
-|------|-------|----------|-------------|
-| `--item-type` | `-t` | No* | Item type (1–4, see table below) |
-
-\* If omitted or invalid, prompts for type.
-
-**Item types:**
-
-| Type | Value | Description | Stdin format (for piping) |
-|------|-------|-------------|----------------------------|
-| Credential | `1` | Login + password + metadata | Interactive only (password hidden) |
-| Text | `2` | Text + metadata | `line1\nline2` (text, then metadata) |
-| Binary | `3` | Binary data + metadata | `line1\nline2` (data, then metadata) |
-| Card | `4` | Card name, number, exp, CVV | Interactive only (sensitive fields) |
+| Flag | Short | Description |
+|------|-------|-------------|
+| `--item-type` | `-t` | Item type (1–4, see table below) |
 
 ```bash
-# Text item — pipe content (line1=text, line2=metadata)
-printf 'my secret note\noptional metadata\n' | ./passkeeper create -t 2
-# or: echo -e "my note\nmy meta" | ./passkeeper create -t 2
-
-# Binary item — pipe content
-printf 'base64-or-raw-data\nmetadata\n' | ./passkeeper create -t 3
-
-# Credential or Card — interactive (prompts for each field)
 ./passkeeper create -t 1
-./passkeeper create -t 4
+./passkeeper create
 ```
 
 ---
@@ -195,15 +173,14 @@ Lists items, optionally filtered by type.
 
 Fetches and displays a single item by its ID.
 
-| Flag | Short | Required | Description |
-|------|-------|----------|-------------|
-| `--item-id` | `-i` | No* | Item UUID (from `list` output) |
+| Flag | Short | Description |
+|------|-------|-------------|
+| `--item-id` | `-i` | Item UUID (from `list` output) |
 
-\* If omitted, prompts in interactive mode.
 
 ```bash
 ./passkeeper get -i a1b2c3d4-e5f6-7890-abcd-ef1234567890
-# or: ./passkeeper get
+./passkeeper get
 ```
 
 ---
@@ -212,18 +189,13 @@ Fetches and displays a single item by its ID.
 
 Updates an item by ID. For text/binary items, new content can be piped via stdin.
 
-| Flag | Short | Required | Description |
-|------|-------|----------|-------------|
-| `--item-id` | `-i` | No* | Item UUID to edit |
-
-\* If omitted, prompts in interactive mode.
+| Flag | Short | Description |
+|------|-------|-------------|
+| `--item-id` | `-i` | Item UUID to edit |
 
 ```bash
-# Text item — pipe new content
-printf 'updated text\nupdated metadata\n' | ./passkeeper edit -i <item-id>
-
-# Interactive (all item types)
 ./passkeeper edit -i <item-id>
+./passkeeper edit
 ```
 
 ---
@@ -234,33 +206,6 @@ Displays version and build date.
 
 ```bash
 .tm/passkeeper version
-```
-
----
-
-### Example workflow
-
-```bash
-# Start server and DB first
-make up
-make run   # in another terminal
-
-# Build client (e.g. for Linux)
-make build-client-linux
-
-# Account setup
-./passkeeper register -u alice -p secret123
-./passkeeper login -u alice -p secret123
-
-# Store a text note
-echo -e "My WiFi password: xyz123\nHome network" | ./passkeeper create -t 2
-
-# List and get
-./passkeeper list -t 0
-./passkeeper get -i <id-from-list>
-
-# Update
-echo -e "Updated password\nHome network" | ./passkeeper edit -i <item-id>
 ```
 
 ## Building
