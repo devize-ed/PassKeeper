@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"context"
 	"fmt"
 	"passKeper/internal/logger"
 
@@ -28,9 +27,9 @@ var registerCmd = &cobra.Command{
 		if err != nil {
 			return fmt.Errorf("failed to get password: %w", err)
 		}
-		logger.Log.Debugf("username: %s, password: %s", username, password)
+		logger.Log.Debugf("Credentials provided for user: %s", username)
 		// call the register service
-		err = appInstance.Register(context.Background(), username, password)
+		err = appInstance.Register(cmd.Context(), username, password)
 		if err != nil {
 			return fmt.Errorf("failed to register: %w", err)
 		}

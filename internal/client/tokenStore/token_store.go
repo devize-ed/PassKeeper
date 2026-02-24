@@ -7,17 +7,32 @@ import (
 	"strings"
 )
 
+// Errors
 var (
 	errNotLoggedIn     = errors.New("Authentication token is empty, please login")
 	errFileInteraction = errors.New("file interaction failed")
 )
 
+// TokenStore struct provides the methods to interact with the token store.
 type TokenStore struct {
 	TokenPath string
 }
 
+// NewTokenStore creates a new token store instance.
 func NewTokenStore(tokenStorePath string) *TokenStore {
-	return &TokenStore{TokenPath: tokenStorePath}
+	// expand the token store path if it contains ~
+	path := tokenStorePath
+	if strings.HasPrefix(path, "~") {
+		homeDir, err := os.UserHomeDir()
+		if err == nil {
+			if path == "~" {
+				path = homeDir
+			} else if path == "~/" || strings.HasPrefix(path, "~/") {
+				path = filepath.Join(homeDir, path[2:])
+			}
+		}
+	}
+	return &TokenStore{TokenPath: path}
 }
 
 // Load reads the token from the token store file.

@@ -25,7 +25,8 @@ var (
 	errCredRequired       = errors.New("login and password are required") // errCredRequired is the error returned when the login and password are required.
 	errInvalidTokenMethod = errors.New("invalid token method")            // errInvalidTokenMethod is the error returned when the token method is invalid.
 	errUserIDNotFound     = errors.New("user ID not found in context")    // errUserIDNotFound is the error returned when the user ID is not found in the context.
-	errInvalidToken       = errors.New("invalid token")                   // errInvalidToken is the error returned when the token is invalid.
+	errInvalidToken       = errors.New("invalid token")
+	errTokenExpired       = errors.New("token expired") // errTokenExpired is the error returned when the token is expired.
 )
 
 // NewJWTManager reads the secret from the environment variables
@@ -68,6 +69,19 @@ func (j *JWTManager) ParseToken(tokenStr string) (userID string, err error) {
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
 		return "", fmt.Errorf("failed to get claims from token: %w", err)
+	}
+	// if the user ID is not found in the claims, return an error
+	if claims["exp"] == nil {
+		return "", fmt.Errorf("expiration time is not found in claims")
+	}
+	// get the expiration time from the claims
+	exp, ok := claims["exp"].(float64)
+	if !ok {
+		return "", fmt.Errorf("expiration time is not a float64")
+	}
+	// check if the expiration time is in the past
+	if time.Now().After(time.Unix(int64(exp), 0)) {
+		return "", errTokenExpired
 	}
 	// if the user ID is not found in the claims, return an error
 	if claims["user_id"] == nil {

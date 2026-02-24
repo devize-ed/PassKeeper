@@ -8,6 +8,7 @@ import (
 	"os"
 	client "passKeper/internal/client/grpcclient"
 	"passKeper/internal/client/tokenStore"
+	"passKeper/internal/logger"
 	pb "passKeper/pkg/api"
 	"strconv"
 	"strings"
@@ -33,7 +34,7 @@ type App struct {
 // NewApp creates a new app instance.
 func NewApp(serverAddress, tokenStorePath string, logger *zap.SugaredLogger) (*App, error) {
 	ts := tokenStore.NewTokenStore(tokenStorePath)
-	grpcClient, err := client.NewClient(serverAddress, tokenStore.TokenStore(ts))
+	grpcClient, err := client.NewClient(serverAddress, ts)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create App instance: %w", err)
 	}
@@ -47,14 +48,15 @@ func (a *App) Close() error {
 
 // Register registers a new user.
 func (a *App) Register(ctx context.Context, username, password string) error {
+	logger.Log.Debugf("Registering user: %s", username)
 	// if username and password are not provided, read from stdin
 	if username == "" {
 		fmt.Println("Enter your username: ")
-		username, err := a.in.ReadString('\n')
+		usernameStr, err := a.in.ReadString('\n')
 		if err != nil {
 			return fmt.Errorf("failed to read username: %w", err)
 		}
-		username = strings.TrimSpace(username)
+		username = strings.TrimSpace(usernameStr)
 	}
 	if password == "" {
 		fmt.Println("Enter your password: ")
@@ -64,6 +66,7 @@ func (a *App) Register(ctx context.Context, username, password string) error {
 		}
 		password = strings.TrimSpace(string(passwordBytes))
 	}
+	logger.Log.Debugf("Calling register service for user: %s", username)
 	// call the register service
 	err := a.grpcClient.Register(ctx, username, password)
 	if err != nil {
@@ -74,14 +77,15 @@ func (a *App) Register(ctx context.Context, username, password string) error {
 
 // Login logs in a user.
 func (a *App) Login(ctx context.Context, username, password string) error {
+	logger.Log.Debugf("Logging in user: %s", username)
 	// if username and password are not provided, read from stdin
 	if username == "" {
 		fmt.Println("Enter your username: ")
-		username, err := a.in.ReadString('\n')
+		usernameStr, err := a.in.ReadString('\n')
 		if err != nil {
 			return fmt.Errorf("failed to read username: %w", err)
 		}
-		username = strings.TrimSpace(username)
+		username = strings.TrimSpace(usernameStr)
 	}
 	if password == "" {
 		fmt.Println("Enter your password: ")
@@ -91,6 +95,7 @@ func (a *App) Login(ctx context.Context, username, password string) error {
 		}
 		password = strings.TrimSpace(string(passwordBytes))
 	}
+	logger.Log.Debugf("Calling login service for user: %s", username)
 	// call the login service
 	token, err := a.grpcClient.Login(ctx, username, password)
 	if err != nil {
@@ -108,6 +113,11 @@ func (a *App) Login(ctx context.Context, username, password string) error {
 
 // CreateItem creates a new item.
 func (a *App) CreateItem(ctx context.Context, itemType int32) error {
+	err := a.requireAuthentication()
+	if err != nil {
+		return fmt.Errorf("failed to require authentication: %w", err)
+	}
+	logger.Log.Debugf("Creating item with type: %d", itemType)
 	// if item type is not provided, read from stdin
 	if itemType < 1 || itemType > 4 {
 		fmt.Println("Enter the item type: 1: credential, 2: text, 3: binary, 4: card)")
@@ -115,6 +125,7 @@ func (a *App) CreateItem(ctx context.Context, itemType int32) error {
 		if err != nil {
 			return fmt.Errorf("failed to read item type: %w", err)
 		}
+		itemTypeStr = strings.TrimSpace(itemTypeStr)
 		itemTypeInt, err := strconv.Atoi(itemTypeStr)
 		if err != nil {
 			return fmt.Errorf("failed to convert item type to int: %w", err)
@@ -126,6 +137,7 @@ func (a *App) CreateItem(ctx context.Context, itemType int32) error {
 	if err != nil {
 		return fmt.Errorf("failed to create item data: %w", err)
 	}
+	logger.Log.Debugf("Calling create item service for type: %d", itemType)
 	err = a.grpcClient.CreateItem(ctx, pb.ItemType(itemType), itemData)
 	if err != nil {
 		return fmt.Errorf("failed to create item: %w", err)
@@ -135,25 +147,33 @@ func (a *App) CreateItem(ctx context.Context, itemType int32) error {
 
 // EditItem edits an existing item.
 func (a *App) EditItem(ctx context.Context, itemID string) error {
+	err := a.requireAuthentication()
+	if err != nil {
+		return fmt.Errorf("failed to require authentication: %w", err)
+	}
+	logger.Log.Debugf("Editing item with ID: %s", itemID)
 	// if item type is not provided, read from stdin
 	if itemID == "" {
 		fmt.Println("Enter the item ID: ")
-		itemID, err := a.in.ReadString('\n')
+		itemIDStr, err := a.in.ReadString('\n')
 		if err != nil {
 			return fmt.Errorf("failed to read item ID: %w", err)
 		}
-		itemID = strings.TrimSpace(itemID)
+		itemID = strings.TrimSpace(itemIDStr)
 	}
+	logger.Log.Debugf("Calling pre-update get item service for ID: %s", itemID)
 	// get the current item data
 	itemData, err := a.GetItem(ctx, itemID)
 	if err != nil {
 		return fmt.Errorf("failed to get item data: %w", err)
 	}
+	logger.Log.Debugf("Forming new item data for type: %d", itemData.Type)
 	// form the new item data
 	newItemData, err := a.formItemData(int32(itemData.Type))
 	if err != nil {
 		return fmt.Errorf("failed to form new item data: %w", err)
 	}
+	logger.Log.Debugf("Calling update item service for ID: %s", itemID)
 	// update the item on the server
 	err = a.grpcClient.UpdateItem(ctx, itemID, itemData.Type, newItemData, itemData.UpdatedAt)
 	if err != nil {
@@ -166,20 +186,27 @@ func (a *App) EditItem(ctx context.Context, itemID string) error {
 
 // GetItem retrieves an information about an existing item from the server.
 func (a *App) GetItem(ctx context.Context, itemID string) (*pb.Item, error) {
+	err := a.requireAuthentication()
+	if err != nil {
+		return nil, fmt.Errorf("failed to require authentication: %w", err)
+	}
+	logger.Log.Debugf("Getting item with ID: %s", itemID)
 	// if item ID is not provided, read from stdin
 	if itemID == "" {
 		fmt.Println("Enter the item ID: ")
-		itemID, err := a.in.ReadString('\n')
+		itemIDStr, err := a.in.ReadString('\n')
 		if err != nil {
 			return nil, fmt.Errorf("failed to read item ID: %w", err)
 		}
-		itemID = strings.TrimSpace(itemID)
+		itemID = strings.TrimSpace(itemIDStr)
 	}
+	logger.Log.Debugf("Calling get item service for ID: %s", itemID)
 	// get the item from the server
 	item, err := a.grpcClient.GetItem(ctx, itemID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get item: %w", err)
 	}
+	logger.Log.Debugf("Marshalling item to JSON for ID: %s", itemID)
 	// marshal the item to JSON
 	itemJSON, err := json.MarshalIndent(item, "", "  ")
 	if err != nil {
@@ -193,6 +220,11 @@ func (a *App) GetItem(ctx context.Context, itemID string) (*pb.Item, error) {
 }
 
 func (a *App) ListItems(ctx context.Context, itemType int32) error {
+	err := a.requireAuthentication()
+	if err != nil {
+		return fmt.Errorf("failed to require authentication: %w", err)
+	}
+	logger.Log.Debugf("Listing items with type: %d", itemType)
 	// if item type is not provided, read from stdin
 	if itemType < 0 || itemType > 4 {
 		fmt.Println(`Enter the item type: 0: unspecified, 1: credential, 2: text, 3: binary, 4: card)
@@ -201,12 +233,14 @@ func (a *App) ListItems(ctx context.Context, itemType int32) error {
 		if err != nil {
 			return fmt.Errorf("failed to read item type: %w", err)
 		}
+		itemTypeStr = strings.TrimSpace(itemTypeStr)
 		itemTypeInt, err := strconv.Atoi(itemTypeStr)
 		if err != nil {
 			return fmt.Errorf("failed to convert item type to int: %w", err)
 		}
 		itemType = int32(itemTypeInt)
 	}
+	logger.Log.Debugf("Calling list items service for type: %d", itemType)
 	// list the items from the server
 	items, err := a.grpcClient.ListItems(ctx, pb.ItemType(itemType))
 	if err != nil {

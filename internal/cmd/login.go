@@ -4,7 +4,6 @@ Copyright © 2026 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
-	"context"
 	"fmt"
 	"passKeper/internal/logger"
 
@@ -31,9 +30,9 @@ var loginCmd = &cobra.Command{
 		if err != nil {
 			return fmt.Errorf("failed to get password: %w", err)
 		}
-		logger.Log.Debugf("username: %s, password: %s", username, password)
+		logger.Log.Debugf("Credentials provided for user: %s", username)
 		// call the login service
-		err = appInstance.Login(context.Background(), username, password)
+		err = appInstance.Login(cmd.Context(), username, password)
 		if err != nil {
 			return fmt.Errorf("failed to login: %w", err)
 		}

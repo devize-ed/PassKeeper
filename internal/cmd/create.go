@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"context"
 	"fmt"
 	"passKeper/internal/logger"
 
@@ -24,7 +23,7 @@ var createCmd = &cobra.Command{
 		}
 		logger.Log.Debugf("item type: %d", itemType)
 		// call the create service
-		err = appInstance.CreateItem(context.Background(), itemType)
+		err = appInstance.CreateItem(cmd.Context(), itemType)
 		if err != nil {
 			return fmt.Errorf("failed to create item: %w", err)
 		}
