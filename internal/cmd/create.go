@@ -1,8 +1,8 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
-	"passKeper/internal/client/app"
 	"passKeper/internal/logger"
 
 	"github.com/spf13/cobra"
@@ -24,7 +24,7 @@ var createCmd = &cobra.Command{
 		}
 		logger.Log.Debugf("item type: %d", itemType)
 		// call the create service
-		err = app.CreateItem(itemType)
+		err = appInstance.CreateItem(context.Background(), itemType)
 		if err != nil {
 			return fmt.Errorf("failed to create item: %w", err)
 		}
@@ -36,5 +36,5 @@ var createCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(createCmd)
 
-	createCmd.Flags().Int32P("item-type", "t", -1, "Item type to create (0: unspecified, 1: credential, 2: text, 3: binary, 4: card)")
+	createCmd.Flags().Int32P("item-type", "t", -1, "Item type to create (1: credential, 2: text, 3: binary, 4: card)")
 }

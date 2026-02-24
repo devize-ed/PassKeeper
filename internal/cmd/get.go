@@ -4,8 +4,8 @@ Copyright © 2026 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"context"
 	"fmt"
-	"passKeper/internal/client/app"
 	"passKeper/internal/logger"
 
 	"github.com/spf13/cobra"
@@ -28,7 +28,7 @@ var getCmd = &cobra.Command{
 		}
 		logger.Log.Debugf("item id: %s", itemID)
 		// call the get service
-		err = app.GetItem(itemID)
+		_, err = appInstance.GetItem(context.Background(), itemID)
 		if err != nil {
 			return fmt.Errorf("failed to get item: %w", err)
 		}

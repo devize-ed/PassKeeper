@@ -4,8 +4,8 @@ Copyright © 2026 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"context"
 	"fmt"
-	"passKeper/internal/client/app"
 	"passKeper/internal/logger"
 
 	"github.com/spf13/cobra"
@@ -28,7 +28,7 @@ var listCmd = &cobra.Command{
 		}
 		logger.Log.Debugf("item type: %d", itemType)
 		// call the list service
-		err = app.ListItems(itemType)
+		err = appInstance.ListItems(context.Background(), itemType)
 		if err != nil {
 			return fmt.Errorf("failed to list items: %w", err)
 		}

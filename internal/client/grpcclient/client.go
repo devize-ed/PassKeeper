@@ -5,7 +5,6 @@ import (
 	"fmt"
 	pb "passKeper/pkg/api"
 
-	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -19,7 +18,7 @@ type Client struct {
 }
 
 // NewClient creates a new gRPC client. Pass nil for store to skip auth token injection.
-func NewClient(host string, store TokenStore, logger *zap.SugaredLogger) (*Client, error) {
+func NewClient(host string, store TokenStore) (*Client, error) {
 	conn, err := grpc.NewClient(host, grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithUnaryInterceptor(authInterceptor(store)))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create gRPC client: %w", err)
@@ -64,8 +63,8 @@ func (c *Client) CreateItem(ctx context.Context, itemType pb.ItemType, itemData 
 }
 
 // UpdateItem updates an item.
-func (c *Client) UpdateItem(ctx context.Context, itemID string, itemData *pb.ItemData, updatedAt *timestamppb.Timestamp) error {
-	_, err := c.PasskeeperItemServiceClient.UpdateItem(ctx, &pb.UpdateItemRequest{Id: itemID, Data: itemData, UpdatedAt: updatedAt})
+func (c *Client) UpdateItem(ctx context.Context, itemID string, itemType pb.ItemType, itemData *pb.ItemData, updatedAt *timestamppb.Timestamp) error {
+	_, err := c.PasskeeperItemServiceClient.UpdateItem(ctx, &pb.UpdateItemRequest{Id: itemID, Type: itemType, Data: itemData, UpdatedAt: updatedAt})
 	if err != nil {
 		return fmt.Errorf("failed to update item: %w", err)
 	}

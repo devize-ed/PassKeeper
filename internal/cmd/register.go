@@ -1,8 +1,8 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
-	"passKeper/internal/client/app"
 	"passKeper/internal/logger"
 
 	"github.com/spf13/cobra"
@@ -30,7 +30,7 @@ var registerCmd = &cobra.Command{
 		}
 		logger.Log.Debugf("username: %s, password: %s", username, password)
 		// call the register service
-		err = app.Register(username, password)
+		err = appInstance.Register(context.Background(), username, password)
 		if err != nil {
 			return fmt.Errorf("failed to register: %w", err)
 		}

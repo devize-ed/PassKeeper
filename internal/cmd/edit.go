@@ -4,8 +4,8 @@ Copyright © 2026 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"context"
 	"fmt"
-	"passKeper/internal/client/app"
 	"passKeper/internal/logger"
 
 	"github.com/spf13/cobra"
@@ -31,7 +31,7 @@ var editCmd = &cobra.Command{
 		}
 		logger.Log.Debugf("item id: %s, item data: %s", itemID, itemData)
 		// call the edit service
-		err = app.EditItem(itemID)
+		err = appInstance.EditItem(context.Background(), itemID)
 		if err != nil {
 			return fmt.Errorf("failed to edit item: %w", err)
 		}

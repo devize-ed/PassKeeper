@@ -13,7 +13,6 @@ var (
 
 func main() {
 	fmt.Printf("version: %s, buildDate: %s\n", version, buildDate)
-
 	if err := run(); err != nil {
 		log.Fatal(err)
 	}
