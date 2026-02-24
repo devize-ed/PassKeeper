@@ -39,5 +39,5 @@ var listCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(listCmd)
 
-	listCmd.Flags().Int32P("item-type", "t", -1, "Item type to list (0: unspecified, 1: credential, 2: text, 3: binary, 4: card)")
+	listCmd.Flags().Int32P("item-type", "t", 0, "Item type to list (0: unspecified, 1: credential, 2: text, 3: binary, 4: card)")
 }

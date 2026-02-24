@@ -7,14 +7,12 @@ import (
 	"fmt"
 	"os"
 	client "passKeper/internal/client/grpcclient"
-	"passKeper/internal/client/tokenStore"
 	"passKeper/internal/logger"
 	pb "passKeper/pkg/api"
 	"strconv"
 	"strings"
 
 	"github.com/charmbracelet/x/term"
-	"go.uber.org/zap"
 )
 
 // TokenStore interface provides the methods to interact with the token store.
@@ -32,12 +30,7 @@ type App struct {
 }
 
 // NewApp creates a new app instance.
-func NewApp(serverAddress, tokenStorePath string, logger *zap.SugaredLogger) (*App, error) {
-	ts := tokenStore.NewTokenStore(tokenStorePath)
-	grpcClient, err := client.NewClient(serverAddress, ts)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create App instance: %w", err)
-	}
+func NewApp(grpcClient *client.Client, ts TokenStore) (*App, error) {
 	return &App{grpcClient: grpcClient, ts: ts, in: bufio.NewReader(os.Stdin), out: bufio.NewWriter(os.Stdout)}, nil
 }
 

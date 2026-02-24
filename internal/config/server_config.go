@@ -19,7 +19,7 @@ type ServerConfig struct {
 }
 
 const (
-	DefaultAddress  = ":8080"
+	DefaultHost     = "localhost:50051"
 	DefaultLogLevel = "info"
 )
 
@@ -30,7 +30,7 @@ func LoadServerConfig() (*ServerConfig, error) {
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath("./config/server_config.yaml")
 	// Set the default values.
-	viper.SetDefault("address", DefaultAddress)
+	viper.SetDefault("address", DefaultHost)
 	viper.SetDefault("log_level", DefaultLogLevel)
 	// Read the config file.
 	if err := viper.ReadInConfig(); err != nil {
@@ -55,7 +55,7 @@ func LoadServerConfig() (*ServerConfig, error) {
 		return nil, fmt.Errorf("error binding environment variable: %w", err)
 	}
 	//Set flags from the command line.
-	pflag.StringP("address", "a", DefaultAddress, "server address")
+	pflag.StringP("address", "a", DefaultHost, "server address")
 	pflag.StringP("dsn", "d", "", "database dsn")
 	pflag.StringP("auth_key", "k", "", "auth key")
 	pflag.StringP("log_level", "l", DefaultLogLevel, "log level")
