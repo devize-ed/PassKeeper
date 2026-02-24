@@ -46,7 +46,7 @@ func run() error {
 	if err != nil {
 		return fmt.Errorf("failed to initialize repository: %w", err)
 	}
-	defer repository.Close()
+	defer func() { _ = repository.Close() }()
 
 	// create a context that listens for OS signals to shut down the server
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM, syscall.SIGQUIT)

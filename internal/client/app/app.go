@@ -137,9 +137,15 @@ func (a *App) CreateItem(ctx context.Context, itemType int32) error {
 		return fmt.Errorf("failed to create item: %w", err)
 	}
 	// write the item to the output
-	a.out.WriteString("Created item with ID: \n")
-	a.out.WriteString(item.Id + "\n")
-	a.out.Flush()
+	if _, err := a.out.WriteString("Created item with ID: \n"); err != nil {
+		return fmt.Errorf("write output: %w", err)
+	}
+	if _, err := a.out.WriteString(item.Id + "\n"); err != nil {
+		return fmt.Errorf("write output: %w", err)
+	}
+	if err := a.out.Flush(); err != nil {
+		return fmt.Errorf("flush output: %w", err)
+	}
 	return nil
 }
 
@@ -211,9 +217,15 @@ func (a *App) GetItem(ctx context.Context, itemID string) (*pb.Item, error) {
 		return nil, fmt.Errorf("failed to marshal item: %w", err)
 	}
 	// write the item to the output
-	a.out.WriteString("Current item information for item ID: " + itemID + ": \n")
-	a.out.WriteString(string(itemJSON) + "\n")
-	a.out.Flush()
+	if _, err := a.out.WriteString("Current item information for item ID: " + itemID + ": \n"); err != nil {
+		return nil, fmt.Errorf("write output: %w", err)
+	}
+	if _, err := a.out.WriteString(string(itemJSON) + "\n"); err != nil {
+		return nil, fmt.Errorf("write output: %w", err)
+	}
+	if err := a.out.Flush(); err != nil {
+		return nil, fmt.Errorf("flush output: %w", err)
+	}
 	return item, nil
 }
 
@@ -251,9 +263,15 @@ func (a *App) ListItems(ctx context.Context, itemType int32) error {
 		return fmt.Errorf("failed to marshal items: %w", err)
 	}
 	// write the items to the output
-	a.out.WriteString("Current items information: \n")
-	a.out.WriteString(string(itemsJSON) + "\n")
-	a.out.Flush()
+	if _, err := a.out.WriteString("Current items information: \n"); err != nil {
+		return fmt.Errorf("write output: %w", err)
+	}
+	if _, err := a.out.WriteString(string(itemsJSON) + "\n"); err != nil {
+		return fmt.Errorf("write output: %w", err)
+	}
+	if err := a.out.Flush(); err != nil {
+		return fmt.Errorf("flush output: %w", err)
+	}
 	return nil
 }
 

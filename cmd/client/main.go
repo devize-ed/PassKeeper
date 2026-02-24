@@ -29,7 +29,9 @@ func run() error {
 		return fmt.Errorf("failed to load client config: %w", err)
 	}
 	// initialize the logger
-	logger.Initialize(cfg.LogLevel)
+	if err := logger.Initialize(cfg.LogLevel); err != nil {
+		return fmt.Errorf("failed to initialize logger: %w", err)
+	}
 	// initialize token store
 	store := tokenStore.NewTokenStore(cfg.TokenStorePath)
 	// create a new gRPC client
@@ -44,7 +46,7 @@ func run() error {
 	}
 	// set app in cmd
 	cmd.SetApp(appInstance)
-	defer appInstance.Close()
+	defer func() { _ = appInstance.Close() }()
 	// listen for OS signals for graceful shutdown
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM, syscall.SIGQUIT)
 	defer stop()

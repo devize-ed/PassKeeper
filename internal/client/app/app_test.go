@@ -57,7 +57,7 @@ func mustNewClientWithToken(t *testing.T, addr string, token string) *client.Cli
 
 func TestNewApp(t *testing.T) {
 	c := mustNewClient(t, "localhost:50051")
-	defer c.Close()
+	defer func() { _ = c.Close() }()
 
 	app, err := NewApp(c, &mockTokenStore{token: "t"})
 	require.NoError(t, err)
@@ -121,7 +121,7 @@ func TestApp_Register(t *testing.T) {
 	time.Sleep(50 * time.Millisecond)
 
 	c := mustNewClient(t, addr)
-	defer c.Close()
+	defer func() { _ = c.Close() }()
 	app, err := NewApp(c, &mockTokenStore{})
 	require.NoError(t, err)
 
@@ -150,7 +150,7 @@ func TestApp_Login(t *testing.T) {
 	time.Sleep(50 * time.Millisecond)
 
 	c := mustNewClient(t, addr)
-	defer c.Close()
+	defer func() { _ = c.Close() }()
 	ts := &mockTokenStore{}
 	app, err := NewApp(c, ts)
 	require.NoError(t, err)
@@ -180,7 +180,7 @@ func TestApp_CreateItem(t *testing.T) {
 	time.Sleep(50 * time.Millisecond)
 
 	c := mustNewClientWithToken(t, addr, token)
-	defer c.Close()
+	defer func() { _ = c.Close() }()
 
 	// stdin: text + metadata for type 2 (text)
 	in := bufio.NewReader(bytes.NewReader([]byte("mytext\nmymeta\n")))
@@ -225,7 +225,7 @@ func TestApp_GetItem(t *testing.T) {
 	time.Sleep(50 * time.Millisecond)
 
 	c := mustNewClientWithToken(t, addr, token)
-	defer c.Close()
+	defer func() { _ = c.Close() }()
 
 	app, err := NewApp(c, &mockTokenStore{token: token})
 	require.NoError(t, err)
@@ -269,7 +269,7 @@ func TestApp_ListItems(t *testing.T) {
 	time.Sleep(50 * time.Millisecond)
 
 	c := mustNewClientWithToken(t, addr, token)
-	defer c.Close()
+	defer func() { _ = c.Close() }()
 
 	app, err := NewApp(c, &mockTokenStore{token: token})
 	require.NoError(t, err)
@@ -321,7 +321,7 @@ func TestApp_EditItem(t *testing.T) {
 	time.Sleep(50 * time.Millisecond)
 
 	c := mustNewClientWithToken(t, addr, token)
-	defer c.Close()
+	defer func() { _ = c.Close() }()
 
 	// stdin: new text + metadata for formItemData(type 2)
 	in := bufio.NewReader(bytes.NewReader([]byte("new\nnewmeta\n")))

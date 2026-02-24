@@ -63,7 +63,7 @@ func TestNewClient(t *testing.T) {
 
 func TestClient_Register(t *testing.T) {
 	conn := newTestConn(t)
-	defer conn.Close()
+	defer func() { _ = conn.Close() }()
 
 	mockAuth := pbMocks.NewMockPasskeeperAuthServiceClient(t)
 	mockItem := pbMocks.NewMockPasskeeperItemServiceClient(t)
@@ -91,7 +91,7 @@ func TestClient_Register(t *testing.T) {
 
 func TestClient_Login(t *testing.T) {
 	conn := newTestConn(t)
-	defer conn.Close()
+	defer func() { _ = conn.Close() }()
 
 	mockAuth := pbMocks.NewMockPasskeeperAuthServiceClient(t)
 	mockItem := pbMocks.NewMockPasskeeperItemServiceClient(t)
@@ -124,7 +124,7 @@ func TestClient_CreateItem(t *testing.T) {
 
 	t.Run("success", func(t *testing.T) {
 		conn := newTestConn(t)
-		defer conn.Close()
+		defer func() { _ = conn.Close() }()
 		mockAuth := pbMocks.NewMockPasskeeperAuthServiceClient(t)
 		mockItem := pbMocks.NewMockPasskeeperItemServiceClient(t)
 		c := grpcclient.NewClientWithClients(conn, mockAuth, mockItem)
@@ -143,7 +143,7 @@ func TestClient_CreateItem(t *testing.T) {
 
 	t.Run("error from server", func(t *testing.T) {
 		conn := newTestConn(t)
-		defer conn.Close()
+		defer func() { _ = conn.Close() }()
 		mockAuth := pbMocks.NewMockPasskeeperAuthServiceClient(t)
 		mockItem := pbMocks.NewMockPasskeeperItemServiceClient(t)
 		c := grpcclient.NewClientWithClients(conn, mockAuth, mockItem)
@@ -166,7 +166,7 @@ func TestClient_UpdateItem(t *testing.T) {
 
 	t.Run("success", func(t *testing.T) {
 		conn := newTestConn(t)
-		defer conn.Close()
+		defer func() { _ = conn.Close() }()
 		mockAuth := pbMocks.NewMockPasskeeperAuthServiceClient(t)
 		mockItem := pbMocks.NewMockPasskeeperItemServiceClient(t)
 		c := grpcclient.NewClientWithClients(conn, mockAuth, mockItem)
@@ -181,7 +181,7 @@ func TestClient_UpdateItem(t *testing.T) {
 
 	t.Run("error from server", func(t *testing.T) {
 		conn := newTestConn(t)
-		defer conn.Close()
+		defer func() { _ = conn.Close() }()
 		mockAuth := pbMocks.NewMockPasskeeperAuthServiceClient(t)
 		mockItem := pbMocks.NewMockPasskeeperItemServiceClient(t)
 		c := grpcclient.NewClientWithClients(conn, mockAuth, mockItem)
@@ -198,7 +198,7 @@ func TestClient_UpdateItem(t *testing.T) {
 
 func TestClient_DeleteItem(t *testing.T) {
 	conn := newTestConn(t)
-	defer conn.Close()
+	defer func() { _ = conn.Close() }()
 
 	mockAuth := pbMocks.NewMockPasskeeperAuthServiceClient(t)
 	mockItem := pbMocks.NewMockPasskeeperItemServiceClient(t)
@@ -226,7 +226,7 @@ func TestClient_DeleteItem(t *testing.T) {
 
 func TestClient_GetItem(t *testing.T) {
 	conn := newTestConn(t)
-	defer conn.Close()
+	defer func() { _ = conn.Close() }()
 
 	mockAuth := pbMocks.NewMockPasskeeperAuthServiceClient(t)
 	mockItem := pbMocks.NewMockPasskeeperItemServiceClient(t)
@@ -257,7 +257,7 @@ func TestClient_GetItem(t *testing.T) {
 
 func TestClient_ListItems(t *testing.T) {
 	conn := newTestConn(t)
-	defer conn.Close()
+	defer func() { _ = conn.Close() }()
 
 	mockAuth := pbMocks.NewMockPasskeeperAuthServiceClient(t)
 	mockItem := pbMocks.NewMockPasskeeperItemServiceClient(t)
@@ -301,7 +301,7 @@ func TestClient_ListItems(t *testing.T) {
 
 func TestClient_Close(t *testing.T) {
 	conn := newTestConn(t)
-	defer conn.Close()
+	defer func() { _ = conn.Close() }()
 
 	c := grpcclient.NewClientWithClients(conn, pbMocks.NewMockPasskeeperAuthServiceClient(t), pbMocks.NewMockPasskeeperItemServiceClient(t))
 	err := c.Close()
