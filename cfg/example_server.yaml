@@ -1,0 +1,3 @@
+address: localhost:50051
+dsn: postgres://postgres:postgres@example_host:5432/postgres
+log_level: debug

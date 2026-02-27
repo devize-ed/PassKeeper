@@ -71,10 +71,6 @@ func (j *JWTManager) ParseToken(tokenStr string) (userID string, err error) {
 	if !ok {
 		return "", fmt.Errorf("failed to get claims from token: %w", err)
 	}
-	// if the user ID is not found in the claims, return an error
-	if claims["exp"] == nil {
-		return "", fmt.Errorf("expiration time is not found in claims")
-	}
 	// get the expiration time from the claims
 	exp, ok := claims["exp"].(float64)
 	if !ok {

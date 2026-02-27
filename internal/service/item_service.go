@@ -115,12 +115,12 @@ func (s *ItemService) GetAllItems(ctx context.Context, itemType int32) ([]db.Ite
 }
 
 // validateItemType validates the item type.
-func validateItemType(itemType int32, allowed bool) error {
-	if itemType == 0 && allowed {
+func validateItemType(itemType int32, allowedAllTypes bool) error {
+	if itemType == 0 && allowedAllTypes {
 		return nil
 	}
 	if itemType < 1 || itemType > 4 {
-		return fmt.Errorf("invalid item type: %d", itemType)
+		return fmt.Errorf("%w: %d", ErrInvalidItemType, itemType)
 	}
 	return nil
 }

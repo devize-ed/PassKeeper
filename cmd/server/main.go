@@ -22,7 +22,7 @@ var (
 )
 
 func main() {
-	fmt.Printf("Version: %s, Build Date: %s, Build Commit: %s\n", buildVersion, buildDate, buildCommit)
+	log.Printf("Version: %s, Build Date: %s, Build Commit: %s\n", buildVersion, buildDate, buildCommit)
 
 	if err := run(); err != nil {
 		log.Fatal(err)

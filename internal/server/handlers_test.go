@@ -320,24 +320,6 @@ func TestItemServer_UpdateItem(t *testing.T) {
 			errContains: "not found",
 		},
 		{
-			name: "wrong user",
-			ctx:  ctx,
-			req: &pb.UpdateItemRequest{
-				Id:        itemID,
-				Type:      pb.ItemType_TEXT,
-				Data:      itemData,
-				UpdatedAt: timestamppb.New(ts),
-			},
-			setupMock: func(m *mocks.MockItemService) {
-				m.EXPECT().
-					UpdateItem(mock.Anything, itemID, itemType, mock.AnythingOfType("[]uint8"), ts).
-					Return(db.Item{}, db.ErrWrongUserID)
-			},
-			wantErr:     true,
-			wantCode:    codes.PermissionDenied,
-			errContains: "does not belong",
-		},
-		{
 			name: "timestamp too old",
 			ctx:  ctx,
 			req: &pb.UpdateItemRequest{
@@ -440,19 +422,6 @@ func TestItemServer_DeleteItem(t *testing.T) {
 			errContains: "not found",
 		},
 		{
-			name: "wrong user",
-			ctx:  ctx,
-			req:  &pb.DeleteItemRequest{Id: itemID},
-			setupMock: func(m *mocks.MockItemService) {
-				m.EXPECT().
-					DeleteItem(ctx, itemID).
-					Return(db.ErrWrongUserID)
-			},
-			wantErr:     true,
-			wantCode:    codes.PermissionDenied,
-			errContains: "does not belong",
-		},
-		{
 			name: "internal error",
 			ctx:  ctx,
 			req:  &pb.DeleteItemRequest{Id: itemID},
@@ -531,19 +500,6 @@ func TestItemServer_GetItem(t *testing.T) {
 			wantErr:     true,
 			wantCode:    codes.NotFound,
 			errContains: "not found",
-		},
-		{
-			name: "wrong user",
-			ctx:  ctx,
-			req:  &pb.GetItemRequest{Id: itemID},
-			setupMock: func(m *mocks.MockItemService) {
-				m.EXPECT().
-					GetItem(ctx, itemID).
-					Return(db.Item{}, db.ErrWrongUserID)
-			},
-			wantErr:     true,
-			wantCode:    codes.PermissionDenied,
-			errContains: "does not belong",
 		},
 		{
 			name: "internal error",
@@ -628,19 +584,6 @@ func TestItemServer_ListItems(t *testing.T) {
 			wantErr:     true,
 			wantCode:    codes.NotFound,
 			errContains: "not found",
-		},
-		{
-			name: "wrong user",
-			ctx:  ctx,
-			req:  &pb.ListItemsRequest{Type: pb.ItemType_CREDENTIAL},
-			setupMock: func(m *mocks.MockItemService) {
-				m.EXPECT().
-					GetAllItems(ctx, int32(1)).
-					Return(nil, db.ErrWrongUserID)
-			},
-			wantErr:     true,
-			wantCode:    codes.PermissionDenied,
-			errContains: "does not belong",
 		},
 		{
 			name: "internal error",

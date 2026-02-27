@@ -36,7 +36,7 @@ func (s *AuthServer) Register(ctx context.Context, req *pb.RegisterRequest) (*em
 func (s *AuthServer) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error) {
 	logger.Log.Debugf("Logging in a user with username: %s", req.Username)
 	// Call the LoginUser method from the AuthService.
-	token, err := s.AuthService.LoginUser(ctx, req.Username, req.Password)
+	token, err := s.authService.LoginUser(ctx, req.Username, req.Password)
 	if err != nil {
 		if errors.Is(err, service.ErrInvalidCredentials) {
 			return nil, status.Errorf(codes.Unauthenticated, "invalid credentials: %v", err)
@@ -92,9 +92,6 @@ func (s *ItemServer) UpdateItem(ctx context.Context, req *pb.UpdateItemRequest) 
 		if errors.Is(err, db.ErrItemNotFound) {
 			return nil, status.Errorf(codes.NotFound, "item not found: %v", err)
 		}
-		if errors.Is(err, db.ErrWrongUserID) {
-			return nil, status.Errorf(codes.PermissionDenied, "item does not belong to the user: %v", err)
-		}
 		if errors.Is(err, db.ErrTimestampTooOld) {
 			return nil, status.Errorf(codes.FailedPrecondition, "timestamp is older than the updated at: %v", err)
 		}
@@ -121,9 +118,6 @@ func (s *ItemServer) DeleteItem(ctx context.Context, req *pb.DeleteItemRequest) 
 		if errors.Is(err, db.ErrItemNotFound) {
 			return nil, status.Errorf(codes.NotFound, "item not found: %v", err)
 		}
-		if errors.Is(err, db.ErrWrongUserID) {
-			return nil, status.Errorf(codes.PermissionDenied, "item does not belong to the user: %v", err)
-		}
 		return nil, status.Errorf(codes.Internal, "failed to delete item: %v", err)
 	}
 	logger.Log.Debugf("Item deleted successfully with ID: %s", req.Id)
@@ -138,9 +132,6 @@ func (s *ItemServer) GetItem(ctx context.Context, req *pb.GetItemRequest) (*pb.G
 	if err != nil {
 		if errors.Is(err, db.ErrItemNotFound) {
 			return nil, status.Errorf(codes.NotFound, "item not found: %v", err)
-		}
-		if errors.Is(err, db.ErrWrongUserID) {
-			return nil, status.Errorf(codes.PermissionDenied, "item does not belong to the user: %v", err)
 		}
 		return nil, status.Errorf(codes.Internal, "failed to get item: %v", err)
 	}
@@ -170,9 +161,6 @@ func (s *ItemServer) ListItems(ctx context.Context, req *pb.ListItemsRequest) (*
 	if err != nil {
 		if errors.Is(err, db.ErrItemNotFound) {
 			return nil, status.Errorf(codes.NotFound, "item not found: %v", err)
-		}
-		if errors.Is(err, db.ErrWrongUserID) {
-			return nil, status.Errorf(codes.PermissionDenied, "item does not belong to the user: %v", err)
 		}
 		return nil, status.Errorf(codes.Internal, "failed to list items: %v", err)
 	}

@@ -1,3 +1,0 @@
-address: localhost:50051
-dsn: postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable
-log_level: debug

@@ -34,7 +34,7 @@ type Item struct {
 
 // NewDB provides the new data base connection with the provided configuration.
 func NewDB(ctx context.Context, dsn string) (*DB, error) {
-	logger.Log.Debugf("Connecting to database with DSN: %s", dsn)
+	logger.Log.Debugf("Connecting to database")
 
 	// Run migrations before establishing the connection
 	if err := migrations.RunMigrations(dsn, true); err != nil {
@@ -216,15 +216,14 @@ func (db *DB) GetAllItems(ctx context.Context, userID string, itemType int32) ([
 		if err != nil {
 			return nil, fmt.Errorf("failed to query the items: %w", err)
 		}
-		defer qItems.Close()
 	} else {
 		// If the item type is not 0, get all items of the given type
 		qItems, err = db.pool.Query(ctx, "SELECT id, type, data, created_at, updated_at, deleted_at FROM items WHERE user_id=$1 AND type=$2 AND deleted_at is null", userID, itemType)
 		if err != nil {
 			return nil, fmt.Errorf("failed to query the items: %w", err)
 		}
-		defer qItems.Close()
 	}
+	defer qItems.Close()
 	// Scan the items data from the items
 	var items []Item
 	for qItems.Next() {

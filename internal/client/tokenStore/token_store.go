@@ -3,6 +3,7 @@ package tokenStore
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -40,17 +41,17 @@ func NewTokenStore(tokenStorePath string) *TokenStore {
 func (t *TokenStore) Load() (string, error) {
 	// check if the token store directory exists
 	if _, err := os.Stat(t.TokenPath); os.IsNotExist(err) {
-		return "", errNotLoggedIn
+		return "", fmt.Errorf("%w: %w", errNotLoggedIn, err)
 	}
 	// read the token from the token store file
 	tokenBytes, err := os.ReadFile(t.TokenPath)
 	if err != nil {
-		return "", errFileInteraction
+		return "", fmt.Errorf("%w: %w", errFileInteraction, err)
 	}
 	// trim spaces/newlines
 	token := strings.TrimSpace(string(tokenBytes))
 	if token == "" {
-		return "", errNotLoggedIn
+		return "", fmt.Errorf("%w: token is empty", errNotLoggedIn)
 	}
 	return token, nil
 }

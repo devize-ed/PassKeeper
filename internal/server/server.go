@@ -52,7 +52,7 @@ type Server struct {
 // AuthServer implements the AuthService interface.
 type AuthServer struct {
 	pb.PasskeeperAuthServiceServer
-	AuthService AuthService
+	auth AuthService
 }
 
 // ItemServer implements the ItemService interface.
@@ -62,14 +62,14 @@ type ItemServer struct {
 }
 
 // Start starts the server.
-func (s *Server) serverStart(host string, jwtm *auth.JWTManager) (net.Listener, error) {
+func (s *Server) serverStart(host string) (net.Listener, error) {
 	lis, err := net.Listen("tcp", host)
 	if err != nil {
 		return nil, fmt.Errorf("listen: %w", err)
 	}
 	// Create a new GRPC server.
 	s.grpcServer = grpc.NewServer(
-		grpc.UnaryInterceptor(grpcauth.UnaryServerInterceptor(authFunc(jwtm))),
+		grpc.UnaryInterceptor(grpcauth.UnaryServerInterceptor(authFunc(s.AuthServer.))),
 	)
 	// Register the services.
 	pb.RegisterPasskeeperAuthServiceServer(s.grpcServer, s.AuthServer)
