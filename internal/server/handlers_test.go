@@ -54,7 +54,7 @@ func TestAuthServer_Register(t *testing.T) {
 			},
 			wantErr:     true,
 			wantCode:    codes.AlreadyExists,
-			errContains: "already exists",
+			errContains: "user already exists",
 		},
 		{
 			name: "internal error",
@@ -66,7 +66,7 @@ func TestAuthServer_Register(t *testing.T) {
 			},
 			wantErr:     true,
 			wantCode:    codes.Internal,
-			errContains: "failed to register",
+			errContains: "failed to register user",
 		},
 	}
 
@@ -74,7 +74,8 @@ func TestAuthServer_Register(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			authSvc := mocks.NewMockAuthService(t)
 			tc.setupMock(authSvc)
-			srv := &AuthServer{AuthService: authSvc}
+
+			srv := &AuthServer{aService: authSvc}
 
 			resp, err := srv.Register(ctx, tc.req)
 			if tc.wantErr {
@@ -88,6 +89,7 @@ func TestAuthServer_Register(t *testing.T) {
 				assert.Nil(t, resp)
 				return
 			}
+
 			require.NoError(t, err)
 			require.NotNil(t, resp)
 			assert.Equal(t, &emptypb.Empty{}, resp)
@@ -140,7 +142,7 @@ func TestAuthServer_Login(t *testing.T) {
 			},
 			wantErr:     true,
 			wantCode:    codes.Internal,
-			errContains: "failed to login",
+			errContains: "failed to login user",
 		},
 	}
 
@@ -148,7 +150,8 @@ func TestAuthServer_Login(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			authSvc := mocks.NewMockAuthService(t)
 			tc.setupMock(authSvc)
-			srv := &AuthServer{AuthService: authSvc}
+
+			srv := &AuthServer{aService: authSvc}
 
 			resp, err := srv.Login(ctx, tc.req)
 			if tc.wantErr {
@@ -162,6 +165,7 @@ func TestAuthServer_Login(t *testing.T) {
 				assert.Nil(t, resp)
 				return
 			}
+
 			require.NoError(t, err)
 			require.NotNil(t, resp)
 			assert.Equal(t, tc.wantToken, resp.Token)
@@ -171,12 +175,14 @@ func TestAuthServer_Login(t *testing.T) {
 
 func makeItemData() *pb.ItemData {
 	return &pb.ItemData{
-		Data: &pb.ItemData_Text{Text: &pb.Text{Text: "test data", Metadata: ""}},
+		Data: &pb.ItemData_Text{
+			Text: &pb.Text{Text: "test data", Metadata: ""},
+		},
 	}
 }
 
-func makeDBItem(id, userID string, itemType int32, data *pb.ItemData) db.Item {
-	now := time.Now()
+func makeDBItem(id string, itemType int32, data *pb.ItemData) db.Item {
+	now := time.Now().UTC().Truncate(time.Microsecond)
 	dataBytes, _ := proto.Marshal(data)
 	return db.Item{
 		ID:        id,
@@ -190,8 +196,9 @@ func makeDBItem(id, userID string, itemType int32, data *pb.ItemData) db.Item {
 func TestItemServer_CreateItem(t *testing.T) {
 	userID := "testuser"
 	ctx := authWithUserID(context.Background(), userID)
+
 	itemData := makeItemData()
-	itemType := int32(1)
+	itemType := int32(pb.ItemType_CREDENTIAL)
 
 	tests := []struct {
 		name        string
@@ -209,7 +216,7 @@ func TestItemServer_CreateItem(t *testing.T) {
 			setupMock: func(m *mocks.MockItemService) {
 				m.EXPECT().
 					CreateItem(mock.Anything, itemType, mock.AnythingOfType("[]uint8")).
-					Return(makeDBItem(uuid.New().String(), userID, itemType, itemData), nil)
+					Return(makeDBItem(uuid.NewString(), itemType, itemData), nil)
 			},
 			wantErr: false,
 		},
@@ -219,7 +226,7 @@ func TestItemServer_CreateItem(t *testing.T) {
 			req:  &pb.CreateItemRequest{Type: pb.ItemType_UNSPECIFIED, Data: itemData},
 			setupMock: func(m *mocks.MockItemService) {
 				m.EXPECT().
-					CreateItem(mock.Anything, int32(0), mock.AnythingOfType("[]uint8")).
+					CreateItem(mock.Anything, int32(pb.ItemType_UNSPECIFIED), mock.AnythingOfType("[]uint8")).
 					Return(db.Item{}, service.ErrInvalidItemType)
 			},
 			wantErr:     true,
@@ -245,7 +252,8 @@ func TestItemServer_CreateItem(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			itemSvc := mocks.NewMockItemService(t)
 			tc.setupMock(itemSvc)
-			srv := &ItemServer{ItemService: itemSvc}
+
+			srv := &ItemServer{iService: itemSvc}
 
 			resp, err := srv.CreateItem(tc.ctx, tc.req)
 			if tc.wantErr {
@@ -259,21 +267,24 @@ func TestItemServer_CreateItem(t *testing.T) {
 				assert.Nil(t, resp)
 				return
 			}
+
 			require.NoError(t, err)
 			require.NotNil(t, resp)
 			require.NotNil(t, resp.Item)
 			assert.NotEmpty(t, resp.Item.Id)
 			assert.Equal(t, tc.req.Type, resp.Item.Type)
+			assert.NotNil(t, resp.Item.Data)
 		})
 	}
 }
 
 func TestItemServer_UpdateItem(t *testing.T) {
 	userID := "testuser"
-	itemID := uuid.New().String()
+	itemID := uuid.NewString()
 	ctx := authWithUserID(context.Background(), userID)
+
 	itemData := makeItemData()
-	itemType := int32(2)
+	itemType := int32(pb.ItemType_TEXT)
 	ts := time.Now().UTC().Truncate(time.Microsecond)
 
 	tests := []struct {
@@ -297,7 +308,7 @@ func TestItemServer_UpdateItem(t *testing.T) {
 			setupMock: func(m *mocks.MockItemService) {
 				m.EXPECT().
 					UpdateItem(mock.Anything, itemID, itemType, mock.AnythingOfType("[]uint8"), ts).
-					Return(makeDBItem(itemID, userID, itemType, itemData), nil)
+					Return(makeDBItem(itemID, itemType, itemData), nil)
 			},
 			wantErr: false,
 		},
@@ -317,7 +328,7 @@ func TestItemServer_UpdateItem(t *testing.T) {
 			},
 			wantErr:     true,
 			wantCode:    codes.NotFound,
-			errContains: "not found",
+			errContains: "item not found",
 		},
 		{
 			name: "timestamp too old",
@@ -335,7 +346,7 @@ func TestItemServer_UpdateItem(t *testing.T) {
 			},
 			wantErr:     true,
 			wantCode:    codes.FailedPrecondition,
-			errContains: "timestamp",
+			errContains: "timestamp is older",
 		},
 		{
 			name: "internal error",
@@ -353,7 +364,7 @@ func TestItemServer_UpdateItem(t *testing.T) {
 			},
 			wantErr:     true,
 			wantCode:    codes.Internal,
-			errContains: "failed to update",
+			errContains: "failed to update item",
 		},
 	}
 
@@ -361,7 +372,8 @@ func TestItemServer_UpdateItem(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			itemSvc := mocks.NewMockItemService(t)
 			tc.setupMock(itemSvc)
-			srv := &ItemServer{ItemService: itemSvc}
+
+			srv := &ItemServer{iService: itemSvc}
 
 			resp, err := srv.UpdateItem(tc.ctx, tc.req)
 			if tc.wantErr {
@@ -375,6 +387,7 @@ func TestItemServer_UpdateItem(t *testing.T) {
 				assert.Nil(t, resp)
 				return
 			}
+
 			require.NoError(t, err)
 			require.NotNil(t, resp)
 			require.NotNil(t, resp.Item)
@@ -385,7 +398,7 @@ func TestItemServer_UpdateItem(t *testing.T) {
 
 func TestItemServer_DeleteItem(t *testing.T) {
 	userID := "testuser"
-	itemID := uuid.New().String()
+	itemID := uuid.NewString()
 	ctx := authWithUserID(context.Background(), userID)
 
 	tests := []struct {
@@ -419,7 +432,7 @@ func TestItemServer_DeleteItem(t *testing.T) {
 			},
 			wantErr:     true,
 			wantCode:    codes.NotFound,
-			errContains: "not found",
+			errContains: "item not found",
 		},
 		{
 			name: "internal error",
@@ -432,7 +445,7 @@ func TestItemServer_DeleteItem(t *testing.T) {
 			},
 			wantErr:     true,
 			wantCode:    codes.Internal,
-			errContains: "failed to delete",
+			errContains: "failed to delete item",
 		},
 	}
 
@@ -440,7 +453,8 @@ func TestItemServer_DeleteItem(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			itemSvc := mocks.NewMockItemService(t)
 			tc.setupMock(itemSvc)
-			srv := &ItemServer{ItemService: itemSvc}
+
+			srv := &ItemServer{iService: itemSvc}
 
 			resp, err := srv.DeleteItem(tc.ctx, tc.req)
 			if tc.wantErr {
@@ -454,6 +468,7 @@ func TestItemServer_DeleteItem(t *testing.T) {
 				assert.Nil(t, resp)
 				return
 			}
+
 			require.NoError(t, err)
 			require.NotNil(t, resp)
 			assert.Equal(t, &emptypb.Empty{}, resp)
@@ -463,10 +478,11 @@ func TestItemServer_DeleteItem(t *testing.T) {
 
 func TestItemServer_GetItem(t *testing.T) {
 	userID := "testuser"
-	itemID := uuid.New().String()
+	itemID := uuid.NewString()
 	ctx := authWithUserID(context.Background(), userID)
+
 	itemData := makeItemData()
-	dbItem := makeDBItem(itemID, userID, 1, itemData)
+	dbItem := makeDBItem(itemID, int32(pb.ItemType_CREDENTIAL), itemData)
 
 	tests := []struct {
 		name        string
@@ -499,7 +515,7 @@ func TestItemServer_GetItem(t *testing.T) {
 			},
 			wantErr:     true,
 			wantCode:    codes.NotFound,
-			errContains: "not found",
+			errContains: "item not found",
 		},
 		{
 			name: "internal error",
@@ -520,7 +536,8 @@ func TestItemServer_GetItem(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			itemSvc := mocks.NewMockItemService(t)
 			tc.setupMock(itemSvc)
-			srv := &ItemServer{ItemService: itemSvc}
+
+			srv := &ItemServer{iService: itemSvc}
 
 			resp, err := srv.GetItem(tc.ctx, tc.req)
 			if tc.wantErr {
@@ -534,6 +551,7 @@ func TestItemServer_GetItem(t *testing.T) {
 				assert.Nil(t, resp)
 				return
 			}
+
 			require.NoError(t, err)
 			require.NotNil(t, resp)
 			require.NotNil(t, resp.Item)
@@ -546,10 +564,13 @@ func TestItemServer_GetItem(t *testing.T) {
 func TestItemServer_ListItems(t *testing.T) {
 	userID := "testuser"
 	ctx := authWithUserID(context.Background(), userID)
+
 	itemData := makeItemData()
+
+	// Make returned items consistent with requested type.
 	items := []db.Item{
-		makeDBItem("id1", userID, 1, itemData),
-		makeDBItem("id2", userID, 2, itemData),
+		makeDBItem("id1", int32(pb.ItemType_CREDENTIAL), itemData),
+		makeDBItem("id2", int32(pb.ItemType_CREDENTIAL), itemData),
 	}
 
 	tests := []struct {
@@ -567,7 +588,7 @@ func TestItemServer_ListItems(t *testing.T) {
 			req:  &pb.ListItemsRequest{Type: pb.ItemType_CREDENTIAL},
 			setupMock: func(m *mocks.MockItemService) {
 				m.EXPECT().
-					GetAllItems(ctx, int32(1)).
+					GetAllItems(ctx, int32(pb.ItemType_CREDENTIAL)).
 					Return(items, nil)
 			},
 			wantErr: false,
@@ -578,12 +599,12 @@ func TestItemServer_ListItems(t *testing.T) {
 			req:  &pb.ListItemsRequest{Type: pb.ItemType_CREDENTIAL},
 			setupMock: func(m *mocks.MockItemService) {
 				m.EXPECT().
-					GetAllItems(ctx, int32(1)).
+					GetAllItems(ctx, int32(pb.ItemType_CREDENTIAL)).
 					Return(nil, db.ErrItemNotFound)
 			},
 			wantErr:     true,
 			wantCode:    codes.NotFound,
-			errContains: "not found",
+			errContains: "item not found",
 		},
 		{
 			name: "internal error",
@@ -591,12 +612,12 @@ func TestItemServer_ListItems(t *testing.T) {
 			req:  &pb.ListItemsRequest{Type: pb.ItemType_CREDENTIAL},
 			setupMock: func(m *mocks.MockItemService) {
 				m.EXPECT().
-					GetAllItems(ctx, int32(1)).
+					GetAllItems(ctx, int32(pb.ItemType_CREDENTIAL)).
 					Return(nil, errors.New("storage error"))
 			},
 			wantErr:     true,
 			wantCode:    codes.Internal,
-			errContains: "failed to list",
+			errContains: "failed to list items",
 		},
 	}
 
@@ -604,7 +625,8 @@ func TestItemServer_ListItems(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			itemSvc := mocks.NewMockItemService(t)
 			tc.setupMock(itemSvc)
-			srv := &ItemServer{ItemService: itemSvc}
+
+			srv := &ItemServer{iService: itemSvc}
 
 			resp, err := srv.ListItems(tc.ctx, tc.req)
 			if tc.wantErr {
@@ -618,9 +640,11 @@ func TestItemServer_ListItems(t *testing.T) {
 				assert.Nil(t, resp)
 				return
 			}
+
 			require.NoError(t, err)
 			require.NotNil(t, resp)
 			assert.Len(t, resp.Items, 2)
+			assert.Equal(t, pb.ItemType_CREDENTIAL, resp.Items[0].Type)
 		})
 	}
 }

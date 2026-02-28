@@ -20,7 +20,7 @@ import (
 func (s *AuthServer) Register(ctx context.Context, req *pb.RegisterRequest) (*emptypb.Empty, error) {
 	logger.Log.Debugf("Registering a new user with username: %s", req.Username)
 	// Call the CreateUser method from the AuthService.
-	err := s.AuthService.CreateUser(ctx, req.Username, req.Password)
+	err := s.aService.CreateUser(ctx, req.Username, req.Password)
 	if err != nil {
 		if errors.Is(err, db.ErrUserAlreadyExists) {
 			return nil, status.Errorf(codes.AlreadyExists, "user already exists: %v", err)
@@ -36,7 +36,7 @@ func (s *AuthServer) Register(ctx context.Context, req *pb.RegisterRequest) (*em
 func (s *AuthServer) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error) {
 	logger.Log.Debugf("Logging in a user with username: %s", req.Username)
 	// Call the LoginUser method from the AuthService.
-	token, err := s.authService.LoginUser(ctx, req.Username, req.Password)
+	token, err := s.aService.LoginUser(ctx, req.Username, req.Password)
 	if err != nil {
 		if errors.Is(err, service.ErrInvalidCredentials) {
 			return nil, status.Errorf(codes.Unauthenticated, "invalid credentials: %v", err)
@@ -57,7 +57,7 @@ func (s *ItemServer) CreateItem(ctx context.Context, req *pb.CreateItemRequest) 
 		return nil, status.Errorf(codes.Internal, "failed to marshal item data: %v", err)
 	}
 	// Call the CreateItem method from the ItemService.
-	item, err := s.ItemService.CreateItem(ctx, int32(req.Type), data)
+	item, err := s.iService.CreateItem(ctx, int32(req.Type), data)
 	if err != nil {
 		if errors.Is(err, service.ErrInvalidItemType) {
 			return nil, status.Errorf(codes.InvalidArgument, "invalid item type: %v", err)
@@ -87,7 +87,7 @@ func (s *ItemServer) UpdateItem(ctx context.Context, req *pb.UpdateItemRequest) 
 	// Truncate the timestamp to the microsecond
 	timestamp := req.UpdatedAt.AsTime().UTC().Truncate(time.Microsecond)
 	// Call the UpdateItem method from the ItemService.
-	item, err := s.ItemService.UpdateItem(ctx, req.Id, int32(req.Type), data, timestamp)
+	item, err := s.iService.UpdateItem(ctx, req.Id, int32(req.Type), data, timestamp)
 	if err != nil {
 		if errors.Is(err, db.ErrItemNotFound) {
 			return nil, status.Errorf(codes.NotFound, "item not found: %v", err)
@@ -113,7 +113,7 @@ func (s *ItemServer) UpdateItem(ctx context.Context, req *pb.UpdateItemRequest) 
 func (s *ItemServer) DeleteItem(ctx context.Context, req *pb.DeleteItemRequest) (*emptypb.Empty, error) {
 	logger.Log.Debugf("Deleting an item with ID: %s", req.Id)
 	// Call the DeleteItem method from the ItemService.
-	err := s.ItemService.DeleteItem(ctx, req.Id)
+	err := s.iService.DeleteItem(ctx, req.Id)
 	if err != nil {
 		if errors.Is(err, db.ErrItemNotFound) {
 			return nil, status.Errorf(codes.NotFound, "item not found: %v", err)
@@ -128,7 +128,7 @@ func (s *ItemServer) DeleteItem(ctx context.Context, req *pb.DeleteItemRequest) 
 func (s *ItemServer) GetItem(ctx context.Context, req *pb.GetItemRequest) (*pb.GetItemResponse, error) {
 	logger.Log.Debugf("Getting an item with ID: %s", req.Id)
 	// Call the GetItem method from the ItemService.
-	item, err := s.ItemService.GetItem(ctx, req.Id)
+	item, err := s.iService.GetItem(ctx, req.Id)
 	if err != nil {
 		if errors.Is(err, db.ErrItemNotFound) {
 			return nil, status.Errorf(codes.NotFound, "item not found: %v", err)
@@ -157,7 +157,7 @@ func (s *ItemServer) GetItem(ctx context.Context, req *pb.GetItemRequest) (*pb.G
 func (s *ItemServer) ListItems(ctx context.Context, req *pb.ListItemsRequest) (*pb.ListItemsResponse, error) {
 	logger.Log.Debugf("Listing items with type: %d", req.Type)
 	// Call the ListItems method from the ItemService.
-	items, err := s.ItemService.GetAllItems(ctx, int32(req.Type))
+	items, err := s.iService.GetAllItems(ctx, int32(req.Type))
 	if err != nil {
 		if errors.Is(err, db.ErrItemNotFound) {
 			return nil, status.Errorf(codes.NotFound, "item not found: %v", err)

@@ -37,9 +37,19 @@ type ItemService interface {
 func NewServer(jwtManager *auth.JWTManager, storage service.Storage) *Server {
 	// Create the auth and item services.
 	authService := service.NewAuthService(storage, jwtManager)
+	authServer := NewAuthServer(authService)
 	itemService := service.NewItemService(storage)
+	itemServer := NewItemServer(itemService)
+	// Create the gRPC server with the auth interceptor.
+	grpSrv := grpc.NewServer(
+		grpc.UnaryInterceptor(grpcauth.UnaryServerInterceptor(authFunc(jwtManager))),
+	)
 	// Create the server.
-	return &Server{AuthServer: &AuthServer{AuthService: authService}, ItemServer: &ItemServer{ItemService: itemService}}
+	return &Server{
+		AuthServer: authServer,
+		ItemServer: itemServer,
+		grpcServer: grpSrv,
+	}
 }
 
 // Server holds the gRPC server and its auth/item service implementations.
@@ -51,14 +61,24 @@ type Server struct {
 
 // AuthServer implements the AuthService interface.
 type AuthServer struct {
-	pb.PasskeeperAuthServiceServer
-	auth AuthService
+	pb.UnimplementedPasskeeperAuthServiceServer
+	aService AuthService
+}
+
+// NewAuthServer is a constructor for AuthServer.
+func NewAuthServer(authService AuthService) *AuthServer {
+	return &AuthServer{aService: authService}
 }
 
 // ItemServer implements the ItemService interface.
 type ItemServer struct {
-	pb.PasskeeperItemServiceServer
-	ItemService ItemService
+	pb.UnimplementedPasskeeperItemServiceServer
+	iService ItemService
+}
+
+// NewItemServer is a constructor for ItemServer.
+func NewItemServer(itemService ItemService) *ItemServer {
+	return &ItemServer{iService: itemService}
 }
 
 // Start starts the server.
@@ -67,10 +87,6 @@ func (s *Server) serverStart(host string) (net.Listener, error) {
 	if err != nil {
 		return nil, fmt.Errorf("listen: %w", err)
 	}
-	// Create a new GRPC server.
-	s.grpcServer = grpc.NewServer(
-		grpc.UnaryInterceptor(grpcauth.UnaryServerInterceptor(authFunc(s.AuthServer.))),
-	)
 	// Register the services.
 	pb.RegisterPasskeeperAuthServiceServer(s.grpcServer, s.AuthServer)
 	pb.RegisterPasskeeperItemServiceServer(s.grpcServer, s.ItemServer)
@@ -89,7 +105,7 @@ func (s *Server) Serve(ctx context.Context, host string, jwtm *auth.JWTManager) 
 	// Create a channel to receive the error from the server.
 	errCh := make(chan error, 1)
 	// Start the GRPC server
-	lis, err := s.serverStart(host, jwtm)
+	lis, err := s.serverStart(host)
 	if err != nil {
 		return err
 	}
