@@ -42,7 +42,7 @@ func (m *mockTokenStore) Load() (string, error) {
 
 func mustNewClient(t *testing.T, addr string) *client.Client {
 	t.Helper()
-	c, err := client.NewClient(addr, nil)
+	c, err := client.NewClient(addr, nil, false, "", "")
 	require.NoError(t, err)
 	return c
 }
@@ -50,7 +50,7 @@ func mustNewClient(t *testing.T, addr string) *client.Client {
 func mustNewClientWithToken(t *testing.T, addr string, token string) *client.Client {
 	t.Helper()
 	ts := &mockTokenStore{token: token}
-	c, err := client.NewClient(addr, ts)
+	c, err := client.NewClient(addr, ts, false, "", "")
 	require.NoError(t, err)
 	return c
 }
@@ -114,7 +114,7 @@ func TestApp_Register(t *testing.T) {
 	storage.EXPECT().CreateUser(mock.Anything, "user1", mock.AnythingOfType("string")).Return(nil)
 
 	jwt := auth.NewJWTManager("test-secret")
-	srv := serverpkg.NewServer(jwt, storage)
+	srv := serverpkg.NewServer(jwt, storage, false, "", "")
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	go func() { _ = srv.Serve(ctx, addr, jwt) }()
@@ -143,7 +143,7 @@ func TestApp_Login(t *testing.T) {
 	storage.EXPECT().GetUser(mock.Anything, "user1").Return("user-id", passwordHash, nil)
 
 	jwt := auth.NewJWTManager("test-secret")
-	srv := serverpkg.NewServer(jwt, storage)
+	srv := serverpkg.NewServer(jwt, storage, false, "", "")
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	go func() { _ = srv.Serve(ctx, addr, jwt) }()
@@ -173,7 +173,7 @@ func TestApp_CreateItem(t *testing.T) {
 	token, err := jwt.GenerateToken("user-id")
 	require.NoError(t, err)
 
-	srv := serverpkg.NewServer(jwt, storage)
+	srv := serverpkg.NewServer(jwt, storage, false, "", "")
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	go func() { _ = srv.Serve(ctx, addr, jwt) }()
@@ -218,7 +218,7 @@ func TestApp_GetItem(t *testing.T) {
 	token, err := jwt.GenerateToken("user-id")
 	require.NoError(t, err)
 
-	srv := serverpkg.NewServer(jwt, storage)
+	srv := serverpkg.NewServer(jwt, storage, false, "", "")
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	go func() { _ = srv.Serve(ctx, addr, jwt) }()
@@ -262,7 +262,7 @@ func TestApp_ListItems(t *testing.T) {
 	token, err := jwt.GenerateToken("user-id")
 	require.NoError(t, err)
 
-	srv := serverpkg.NewServer(jwt, storage)
+	srv := serverpkg.NewServer(jwt, storage, false, "", "")
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	go func() { _ = srv.Serve(ctx, addr, jwt) }()
@@ -314,7 +314,7 @@ func TestApp_EditItem(t *testing.T) {
 	token, err := jwt.GenerateToken("user-id")
 	require.NoError(t, err)
 
-	srv := serverpkg.NewServer(jwt, storage)
+	srv := serverpkg.NewServer(jwt, storage, false, "", "")
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	go func() { _ = srv.Serve(ctx, addr, jwt) }()

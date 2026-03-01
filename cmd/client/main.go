@@ -35,7 +35,7 @@ func run() error {
 	// initialize token store
 	store := tokenStore.NewTokenStore(cfg.TokenStorePath)
 	// create a new gRPC client
-	grpcClient, err := grpcclient.NewClient(cfg.Address, store)
+	grpcClient, err := grpcclient.NewClient(cfg.Address, store, cfg.TLS, cfg.CertFile, cfg.ServerName)
 	if err != nil {
 		return fmt.Errorf("failed to create gRPC client: %w", err)
 	}

@@ -56,7 +56,7 @@ func run() error {
 	jwtManager := auth.NewJWTManager(cfg.AuthKey)
 
 	// create a new server
-	srv := server.NewServer(jwtManager, repository)
+	srv := server.NewServer(jwtManager, repository, cfg.TLS, cfg.CertFile, cfg.KeyFile)
 	// start the server
 	if err := srv.Serve(ctx, cfg.Address, jwtManager); err != nil {
 		return fmt.Errorf("failed to start server: %w", err)

@@ -8,6 +8,7 @@ import (
 	pb "passKeper/pkg/api"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -20,12 +21,25 @@ type Client struct {
 }
 
 // NewClient creates a new gRPC client. Pass nil for store to skip auth token injection.
-func NewClient(host string, store TokenStore) (*Client, error) {
-	conn, err := grpc.NewClient(host, grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithUnaryInterceptor(authInterceptor(store)))
-	if err != nil {
-		return nil, fmt.Errorf("failed to create gRPC client: %w", err)
+func NewClient(host string, store TokenStore, tlsEnabled bool, certFile string, serverName string) (*Client, error) {
+	// If TLS is enabled, create the credentials.
+	if tlsEnabled {
+		creds, err := credentials.NewClientTLSFromFile(certFile, serverName)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create credentials: %w", err)
+		}
+		conn, err := grpc.NewClient(host, grpc.WithTransportCredentials(creds), grpc.WithUnaryInterceptor(authInterceptor(store)))
+		if err != nil {
+			return nil, fmt.Errorf("failed to create gRPC client: %w", err)
+		}
+		return NewClientWithConn(conn), nil
+	} else { // Otherwise, create the insecure connection.
+		conn, err := grpc.NewClient(host, grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithUnaryInterceptor(authInterceptor(store)))
+		if err != nil {
+			return nil, fmt.Errorf("failed to create gRPC client: %w", err)
+		}
+		return NewClientWithConn(conn), nil
 	}
-	return NewClientWithConn(conn), nil
 }
 
 // NewClientWithConn creates a Client from an existing connection.

@@ -16,6 +16,7 @@ import (
 	grpcauth "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/auth"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 )
 
 // AuthService interface provides the methods to interact with the auth service layer.
@@ -34,16 +35,27 @@ type ItemService interface {
 }
 
 // NewServer creates a new server.
-func NewServer(jwtManager *auth.JWTManager, storage service.Storage) *Server {
+func NewServer(jwtManager *auth.JWTManager, storage service.Storage, tlsEnabled bool, certFile string, keyFile string) *Server {
 	// Create the auth and item services.
 	authService := service.NewAuthService(storage, jwtManager)
 	authServer := NewAuthServer(authService)
 	itemService := service.NewItemService(storage)
 	itemServer := NewItemServer(itemService)
-	// Create the gRPC server with the auth interceptor.
-	grpSrv := grpc.NewServer(
+	// Create the gRPC server interceptor.
+	opts := []grpc.ServerOption{
 		grpc.UnaryInterceptor(grpcauth.UnaryServerInterceptor(authFunc(jwtManager))),
-	)
+	}
+	// If TLS is enabled, create the credentials.
+	if tlsEnabled {
+		creds, err := credentials.NewServerTLSFromFile(certFile, keyFile)
+		if err != nil {
+			logger.Log.Fatalf("failed to create credentials: %v", err)
+		}
+		opts = append(opts, grpc.Creds(creds))
+	}
+	// Create the gRPC server.
+	grpSrv := grpc.NewServer(opts...)
+
 	// Create the server.
 	return &Server{
 		AuthServer: authServer,

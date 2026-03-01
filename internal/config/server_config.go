@@ -16,12 +16,16 @@ type ServerConfig struct {
 	DSN      string `mapstructure:"dsn" env:"DATABASE_DSN"`
 	AuthKey  string `mapstructure:"auth_key" env:"AUTH_SECRET"`
 	LogLevel string `mapstructure:"log_level" env:"LOG_LEVEL"`
+	TLS      bool   `mapstructure:"tls_enabled" env:"TLS_ENABLED"`
+	CertFile string `mapstructure:"tls_cert_file" env:"TLS_CERT_FILE"`
+	KeyFile  string `mapstructure:"tls_key_file" env:"TLS_KEY_FILE"`
 }
 
 // Default server configuration values.
 const (
 	DefaultHost     = "localhost:50051" // DefaultHost is the default gRPC listen address.
 	DefaultLogLevel = "info"            // DefaultLogLevel is the default log level (used by client too).
+	DefaultTLS      = false             // DefaultTLS is the default TLS flag.
 )
 
 // LoadServerConfig loads the server configuration from the viper.
@@ -35,6 +39,7 @@ func LoadServerConfig() (*ServerConfig, error) {
 	// Set the default values.
 	viper.SetDefault("address", DefaultHost)
 	viper.SetDefault("log_level", DefaultLogLevel)
+	viper.SetDefault("tls_enabled", DefaultTLS)
 	// Read the config file.
 	if err := viper.ReadInConfig(); err != nil {
 		_, ok := err.(viper.ConfigFileNotFoundError)
@@ -62,6 +67,9 @@ func LoadServerConfig() (*ServerConfig, error) {
 	pflag.StringP("dsn", "d", "", "database dsn")
 	pflag.StringP("auth_key", "k", "", "auth key")
 	pflag.StringP("log_level", "l", DefaultLogLevel, "log level")
+	pflag.BoolP("tls_enabled", "t", DefaultTLS, "enable TLS")
+	pflag.StringP("cert_file", "c", "", "TLS certificate file")
+	pflag.StringP("key_file", "b", "", "TLS key file")
 	// Parse the flags.
 	pflag.Parse()
 	// Bind the flags to the viper.
@@ -93,6 +101,9 @@ func validateServerConfig(cfg *ServerConfig) error {
 	}
 	if cfg.DSN == "" {
 		return errors.New("dsn is required")
+	}
+	if cfg.TLS && (cfg.CertFile == "" || cfg.KeyFile == "") {
+		return errors.New("cert file and key file are required when TLS is enabled")
 	}
 	return nil
 }

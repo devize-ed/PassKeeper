@@ -2,6 +2,7 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 	"log"
 
@@ -13,12 +14,16 @@ type ClientConfig struct {
 	Address        string `mapstructure:"address" env:"SERVER_ADDRESS"`
 	TokenStorePath string `mapstructure:"token_store_path" env:"TOKEN_STORE_PATH"`
 	LogLevel       string `mapstructure:"log_level" env:"LOG_LEVEL"`
+	TLS            bool   `mapstructure:"tls_enabled" env:"TLS_ENABLED"`
+	CertFile       string `mapstructure:"tls_cert_file" env:"TLS_CERT_FILE"`
+	ServerName     string `mapstructure:"tls_server_name" env:"TLS_SERVER_NAME"`
 }
 
 // Default client configuration values.
 const (
 	DefaultServerAddress  = "localhost:50051"     // DefaultServerAddress is the default gRPC server address.
 	DefaultTokenStorePath = "~/.passkeeper/token" // DefaultTokenStorePath is the default token file path.
+	DefaultClientTLS      = false                 // DefaultTLS is the default TLS flag.
 )
 
 // LoadClientConfig loads the client configuration from the viper.
@@ -58,5 +63,20 @@ func LoadClientConfig() (*ClientConfig, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error unmarshalling client config: %w", err)
 	}
+
+	// Validate the client configuration.
+	err = validateClientConfig(&cfg)
+	if err != nil {
+		return nil, fmt.Errorf("error validating client config: %w", err)
+	}
+	// Return the client configuration.
 	return &cfg, nil
+}
+
+// validateClientConfig validates the client configuration.
+func validateClientConfig(cfg *ClientConfig) error {
+	if cfg.TLS && (cfg.CertFile == "" || cfg.ServerName == "") {
+		return errors.New("cert file and server name are required when TLS is enabled")
+	}
+	return nil
 }

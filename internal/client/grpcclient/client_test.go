@@ -28,10 +28,13 @@ func newTestConn(t *testing.T) *grpc.ClientConn {
 
 func TestNewClient(t *testing.T) {
 	tests := []struct {
-		name    string
-		host    string
-		store   grpcclient.TokenStore
-		wantErr bool
+		name       string
+		host       string
+		store      grpcclient.TokenStore
+		tlsEnabled bool
+		certFile   string
+		serverName string
+		wantErr    bool
 	}{
 		{
 			name:    "nil store valid host",
@@ -48,7 +51,7 @@ func TestNewClient(t *testing.T) {
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			c, err := grpcclient.NewClient(tc.host, tc.store)
+			c, err := grpcclient.NewClient(tc.host, tc.store, false, "", "")
 			if tc.wantErr {
 				require.Error(t, err)
 				assert.Nil(t, c)

@@ -1,3 +1,12 @@
+# PassKeeper server configuration
+# Config file name: server.yaml (YAML)
+
 address: localhost:50051
 dsn: postgres://postgres:postgres@example_host:5432/postgres
 log_level: debug
+
+# TLS for gRPC (optional). Enable to serve over TLS; supports CA-signed and self-signed certificates.
+# Server flags: -t / --tls_enabled, -c / --cert_file, -b / --key_file
+tls_enabled: false
+tls_cert_file: /path/to/cert.pem   # PEM certificate (required if tls_enabled)
+tls_key_file: /path/to/key.pem    # PEM private key (required if tls_enabled)

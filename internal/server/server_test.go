@@ -17,7 +17,7 @@ func TestNewServer(t *testing.T) {
 	jwtManager := auth.NewJWTManager("test-secret")
 	storage := mocks.NewMockStorage(t)
 
-	srv := NewServer(jwtManager, storage)
+	srv := NewServer(jwtManager, storage, false, "", "")
 	require.NotNil(t, srv)
 	require.NotNil(t, srv.AuthServer)
 	require.NotNil(t, srv.ItemServer)
@@ -50,7 +50,7 @@ func TestServer_Serve(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			srv := NewServer(jwtManager, storage)
+			srv := NewServer(jwtManager, storage, false, "", "")
 			ctx, cancel := context.WithCancel(context.Background())
 			if tc.cancelCtx {
 				cancel()
@@ -75,7 +75,7 @@ func TestServer_Serve(t *testing.T) {
 		addr := lis.Addr().String()
 		_ = lis.Close()
 
-		srv := NewServer(jwtManager, storage)
+		srv := NewServer(jwtManager, storage, false, "", "")
 		ctx, cancel := context.WithCancel(context.Background())
 		done := make(chan error, 1)
 		go func() { done <- srv.Serve(ctx, addr, jwtManager) }()

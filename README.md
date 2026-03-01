@@ -47,20 +47,40 @@ make down
 
 ## Configuration
 
-The service can be configured using environment variables:
+The service can be configured via **config files** (`cfg/client.yaml`, `cfg/server.yaml`), **environment variables**, and **command-line flags** (server only). See `cfg/example_client.yaml` and `cfg/example_server.yaml` for all options.
+
+### Environment variables
 
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `SERVER_ADDRESS` | `localhost:50051` | gRPC server address and port |
-| `DATABASE_DSN` | `postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable` | PostgreSQL connection string |
-| `AUTH_SECRET` | `` | JWT signing secret (required for server) |
+| `DATABASE_DSN` | (see Makefile) | PostgreSQL connection string |
+| `AUTH_SECRET` | (required) | JWT signing secret (server) |
 | `TOKEN_STORE_PATH` | `~/.passkeeper/token` | Client token file path |
 | `LOG_LEVEL` | `info` | Log level (debug, info, warn, error) |
+| **Server TLS** | | |
+| `TLS_ENABLED` | `false` | Enable TLS for gRPC |
+| `TLS_CERT_FILE` | — | Path to PEM certificate (required if TLS enabled) |
+| `TLS_KEY_FILE` | — | Path to PEM private key (required if TLS enabled) |
+| **Client TLS** | | |
+| `TLS_ENABLED` | `false` | Use TLS when connecting to server |
+| `TLS_CERT_FILE` | — | Path to server cert or CA PEM (required if TLS enabled) |
+| `TLS_SERVER_NAME` | — | Server hostname for verification (required if TLS enabled) |
 
 Custom configuration:
 ```bash
 SERVER_ADDRESS=localhost:50052 DATABASE_DSN="postgres://user:pass@localhost:5432/mydb" AUTH_SECRET="my-secret" make run
 ```
+
+### TLS / self-signed certificates
+
+gRPC can run over TLS with **CA-signed or self-signed** certificates.
+
+**Server:** Set `tls_enabled: true` and provide `tls_cert_file` and `tls_key_file` (PEM paths). You can use a self-signed cert (e.g. `openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 365 -nodes`). Override via flags: `-t` (enable TLS), `-c` (cert file), `-b` (key file).
+
+**Client:** Set `tls_enabled: true`, set `tls_cert_file` to the **server’s certificate** (or the CA that signed it), and set `tls_server_name` to the server hostname (e.g. `localhost`). The client trusts the server by using that cert file;
+
+Example with config files: copy `cfg/example_server.yaml` to `cfg/server.yaml` and `cfg/example_client.yaml` to `cfg/client.yaml`, then set the TLS fields and paths as above.
 
 ## Testing
 
