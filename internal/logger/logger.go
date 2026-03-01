@@ -1,3 +1,4 @@
+// Package logger provides a global zap-based logger for PassKeeper.
 package logger
 
 import (
@@ -5,10 +6,10 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-// Singleton logger instance.
+// Log is the global SugaredLogger instance used across the application.
 var Log *zap.SugaredLogger = zap.NewNop().Sugar()
 
-// Initialize singleton logger.
+// Initialize configures and sets the global logger with the given level (debug, info, warn, error).
 func Initialize(level string) error {
 	lvl, err := zap.ParseAtomicLevel(level)
 	if err != nil {

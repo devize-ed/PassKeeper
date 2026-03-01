@@ -1,0 +1,77 @@
+name: tests
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches: [main, development]
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.24.x"
+          check-latest: true
+
+      - name: Build server
+        run: |
+          go build -buildvcs=false -o cmd/server/passkeeper-server ./cmd/server
+
+      - name: Build client
+        run: |
+          mkdir -p .tmp
+          go build -buildvcs=false -o .tmp/passkeeper ./cmd/client
+          chmod +x .tmp/passkeeper
+
+      - name: Start server
+        run: |
+          export SERVER_ADDRESS=localhost:50051
+          export DATABASE_DSN="postgresql://postgres:postgres@localhost:5432/postgres?sslmode=disable"
+          export AUTH_SECRET=e2e-secret-key
+          ./cmd/server/passkeeper-server > .tmp/server.log 2>&1 &
+          echo $! > .tmp/server.pid
+
+      - name: Wait for server
+        run: |
+          for i in $(seq 1 30); do
+            if nc -z 127.0.0.1 50051 2>/dev/null; then
+              echo "Server is up"
+              exit 0
+            fi
+            sleep 0.5
+          done
+          echo "Server did not start in time"
+          cat .tmp/server.log 2>/dev/null || true
+          exit 1
+
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Run e2e tests
+        run: |
+          SERVER_ADDRESS=localhost:50051 \
+          TOKEN_STORE_PATH="$(pwd)/.tmp/e2e-token" \
+          CLIENT_BIN="$(pwd)/.tmp/passkeeper" \
+          bash -euo pipefail ./tests.sh

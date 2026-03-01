@@ -1,0 +1,12 @@
+# PassKeeper client configuration
+# Config file name: client.yaml (YAML)
+
+address: localhost:50051
+token_store_path: ~/.passkeeper/token
+log_level: debug
+
+# TLS for gRPC (optional). Enable to use encrypted connections and/or self-signed server certs.
+# When enabled, provide the server certificate (or CA) so the client trusts the server.
+tls_enabled: false
+tls_cert_file: /path/to/server-cert.pem   # Server cert or CA bundle (required if tls_enabled)
+tls_server_name: localhost                # Server hostname for verification (required if tls_enabled)

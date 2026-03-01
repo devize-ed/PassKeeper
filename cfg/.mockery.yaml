@@ -1,0 +1,36 @@
+with-expecter: true
+disable-version-string: true
+resolve-type-alias: false
+issue-845-fix: true
+packages:
+  passKeper/internal/service:
+    config:
+      dir: internal/service/mocks
+      outpkg: mocks
+      filename: mock_storage.go
+    interfaces:
+      Storage: {}
+
+  passKeper/internal/client/grpcclient:
+    config:
+      dir: internal/client/grpcclient/mocks
+      outpkg: mocks
+      filename: mock_token_store.go
+    interfaces:
+      TokenStore: {}
+
+  passKeper/pkg/api:
+    config:
+      dir: pkg/api/mocks
+      outpkg: mocks
+    interfaces:
+      PasskeeperAuthServiceClient: {}
+      PasskeeperItemServiceClient: {}
+
+  passKeper/internal/server:
+    config:
+      dir: internal/server/mocks
+      outpkg: mocks
+    interfaces:
+      AuthService: {}
+      ItemService: {}
